@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2019-10-14 17:36+0200\n"
+"POT-Creation-Date: 2019-10-16 09:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,8 +15,36 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: modules\img_view.py:146
-msgid "Keep image canvas on top of all windows."
+#: modules\img_view.py:148
+msgid "Bildfläche immer im Vordergrund"
+msgstr ""
+
+#: modules\img_view.py:155
+msgid "Sync DeltaGen Viewer"
+msgstr ""
+
+#: modules\img_view.py:158
+msgid "Pull DeltaGen Focus"
+msgstr ""
+
+#: modules\img_view.py:194
+msgid "<h3>KnechtViewer Tastaturkürzel</h3><ul><li>Q/E - Bildfläche vergrößern/verkleinern</li><li>A/D - Nächste/Vorherige Bilddatei</li><li>W/S - Transparenz der Bildfläche erhöhen/verringern</li><li>Tab - Bildfläche ein-/ausblenden</li><li style=\"margin: 4px 0px;\"><img src=\":/main/collections.svg\" width=\"24\" height=\"24\" style=\"float: left;vertical-align: middle;\"/>Bildfläche immer im Vordergrund ein-/ausschalten</li><li>F   - DeltaGen Viewer Position und Größe synchronisieren</li><li style=\"margin: 4px 0px;\"><img src=\":/main/open.svg\" width=\"24\" height=\"24\" style=\"float: left;vertical-align: middle;\" />DeltaGen Viewer Fenster periodisch in den Vordergrund holen. <b>ACHTUNG</b>: Tastatureingaben werden an das fokusierte DeltaGen Fenster gesendet werden!</li></ul>Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.<br><br>Unterstütze Formate: {}"
+msgstr ""
+
+#: modules\img_view.py:276
+msgid "Keine Bilddaten im Verzeichnis gefunden."
+msgstr ""
+
+#: modules\img_view.py:289
+msgid "Konnte keine Bilddaten laden: {}<br>{}"
+msgstr ""
+
+#: modules\img_view.py:417
+msgid "Bildfläche erscheint nun immer im Vordergrund"
+msgstr ""
+
+#: modules\img_view.py:419
+msgid "Bildfläche erscheint nun nicht mehr im Vordergrund"
 msgstr ""
 
 #: modules\main_ui.py:49

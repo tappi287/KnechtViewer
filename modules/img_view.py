@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PySide2.QtCore import QEvent, QPoint, QRect, QSize, QTimer, Qt
 from PySide2.QtGui import QKeySequence
-from PySide2.QtWidgets import QHBoxLayout, QLabel, QShortcut, QSizePolicy
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QShortcut, QSizePolicy, QPushButton
 
 from modules.deltagen_viewer import KnechtImageViewerSendController
 from modules.utils.globals import MAX_SIZE_FACTOR, APP_NAME
@@ -144,13 +144,18 @@ class ImageView(FileDropWidget):
 
         self.ui.back_btn.pressed.connect(self.iterate_bck)
         self.ui.fwd_btn.pressed.connect(self.iterate_fwd)
-        self.ui.top_btn.setToolTip(_('Keep image canvas on top of all windows.'))
+        self.ui.top_btn: QPushButton
+        self.ui.top_btn.setToolTip(_('Bildfläche immer im Vordergrund'))
         self.ui.top_btn.toggled.connect(self.toggle_stay_on_top)
 
         self.ui.vis_btn.toggled.connect(self.toggle_img_canvas)
 
         # --- DeltaGen Sync ---
+        self.ui.sync_btn: QPushButton
+        self.ui.sync_btn.setText(_('Sync DeltaGen Viewer'))
         self.ui.sync_btn.toggled.connect(self.dg_toggle_sync)
+        self.ui.focus_btn: QPushButton
+        self.ui.focus_btn.setText(_('Pull DeltaGen Focus'))
         self.ui.focus_btn.pressed.connect(self.dg_toggle_pull)
 
         # --- DG Send thread controller ---
