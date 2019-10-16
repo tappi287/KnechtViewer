@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ViewerWindow</class>
+ <widget class="QWidget" name="ViewerWindow">
+  <property name="mouseTracking">
+   <bool>false</bool>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QHBoxLayout" name="path_layout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="path_edit"/>
+     </item>
+     <item>
+      <widget class="QToolButton" name="path_btn">
+       <property name="text">
+        <string>...</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="toolbar_layout">
+     <property name="spacing">
+      <number>6</number>
+     </property>
+     <property name="leftMargin">
+      <number>6</number>
+     </property>
+     <property name="topMargin">
+      <number>6</number>
+     </property>
+     <property name="rightMargin">
+      <number>6</number>
+     </property>
+     <property name="bottomMargin">
+      <number>6</number>
+     </property>
+     <item>
+      <widget class="QPushButton" name="vis_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/eye.png</normaloff>
+         <normalon>:/main/eye_disabled.png</normalon>:/main/eye.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="top_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/img_pin.png</normaloff>
+         <normalon>:/main/collections.svg</normalon>:/main/img_pin.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="opacity_slider">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="maximum">
+        <number>100</number>
+       </property>
+       <property name="sliderPosition">
+        <number>100</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="invertedAppearance">
+        <bool>false</bool>
+       </property>
+       <property name="tickPosition">
+        <enum>QSlider::TicksBothSides</enum>
+       </property>
+       <property name="tickInterval">
+        <number>1</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="sync_btn">
+       <property name="text">
+        <string>Sync DeltaGen Viewer</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/compare.svg</normaloff>:/main/compare.svg</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="focus_btn">
+       <property name="text">
+        <string>Pull DeltaGen Focus</string>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/open.svg</normaloff>:/main/open.svg</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QComboBox" name="zoom_box">
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>18</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="back_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/back.svg</normaloff>:/main/back.svg</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="fwd_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/forward.svg</normaloff>:/main/forward.svg</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="help_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/help.png</normaloff>:/main/help.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources>
+  <include location="res/viewer_resource.qrc"/>
+ </resources>
+ <connections/>
+</ui>

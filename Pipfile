@@ -1,0 +1,19 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+pyinstaller = {git = "https://github.com/pyinstaller/pyinstaller.git"}
+
+[packages]
+pyside2 = "*"
+numpy = "==1.16.2"
+ujson = "*"
+jsonpickle = "*"
+lxml = "*"
+openimageio = {file = "https://piwigo.ilikeviecher.com/ftp-upload/packages/OpenImageIO-2.0.7-cp37-cp37m-win_amd64.whl"}
+pywin32 = "*"
+
+[requires]
+python_version = "3.7"
