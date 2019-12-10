@@ -2,7 +2,7 @@ import logging
 import numpy as np
 from pathlib import Path
 from time import time
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from PySide2.QtCore import QFile, QObject, Slot, QEvent, Signal, QTimer, Qt
 from PySide2.QtGui import QMouseEvent
@@ -13,6 +13,18 @@ from modules.utils.ui_loader import loadUi
 from modules.utils.log import init_logging
 
 LOGGER = init_logging(__name__)
+
+
+class MeasureExecTime:
+    _start_time = time()
+
+    @classmethod
+    def start(cls):
+        cls._start_time = time()
+
+    @classmethod
+    def finish(cls, msg='Generic Call took:'):
+        LOGGER.debug('%s %s', msg, timedelta(seconds=time() - cls._start_time))
 
 
 def replace_widget(old_widget, new_widget):

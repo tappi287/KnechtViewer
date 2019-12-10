@@ -1,8 +1,9 @@
 from pathlib import Path
 from typing import Union
 
-from PySide2.QtCore import QTimer, Qt, QPoint
-from PySide2.QtWidgets import QComboBox, QLineEdit, QSlider, QToolButton
+from PySide2.QtCore import QTimer, Qt, QPoint, QEvent, QObject
+from PySide2.QtGui import QDragEnterEvent, QDropEvent
+from PySide2.QtWidgets import QComboBox, QLineEdit, QSlider, QToolButton, QWidget, QMainWindow
 
 from modules.img_view import ImageView
 from modules.utils.globals import APP_NAME, Resource

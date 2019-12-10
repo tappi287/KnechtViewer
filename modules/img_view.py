@@ -157,6 +157,8 @@ class ImageView(FileDropWidget):
         self.ui.focus_btn: QPushButton
         self.ui.focus_btn.setText(_('Pull DeltaGen Focus'))
         self.ui.focus_btn.pressed.connect(self.dg_toggle_pull)
+        # Pull focus is no longer necessary
+        self.ui.focus_btn.hide()
 
         # --- DG Send thread controller ---
         self.dg_thread = SyncController(self)
@@ -197,15 +199,15 @@ class ImageView(FileDropWidget):
                 '<li>A/D - Nächste/Vorherige Bilddatei</li>'
                 '<li>W/S - Transparenz der Bildfläche erhöhen/verringern</li>'
                 '<li>Tab - Bildfläche ein-/ausblenden</li>'
-                '<li style="margin: 4px 0px;">'
-                '<img src=":/main/collections.svg" width="24" height="24" style="float: left;vertical-align: middle;"/>'
+                '<li style="margin: 6px 0px;">'
+                '<img src=":/main/collections.svg" width="24" height="24" '
+                'style="float: left;vertical-align: middle;" />'
                 'Bildfläche immer im Vordergrund ein-/ausschalten'
                 '</li>'
-                '<li>F   - DeltaGen Viewer Position und Größe synchronisieren</li>'
-                '<li style="margin: 4px 0px;">'
-                '<img src=":/main/open.svg" width="24" height="24" style="float: left;vertical-align: middle;" />'
-                'DeltaGen Viewer Fenster periodisch in den Vordergrund holen. <b>ACHTUNG</b>: Tastatureingaben werden '
-                'an das fokusierte DeltaGen Fenster gesendet werden!'
+                '<li style="margin: 6px 0px;">'
+                '<img src=":/main/compare.svg" width="24" height="24" '
+                'style="float: left;vertical-align: middle;" />'
+                'F   - DeltaGen Viewer Position und Größe synchronisieren'
                 '</li>'
                 '</ul>'
                 'Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.'

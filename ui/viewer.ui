@@ -2,8 +2,19 @@
 <ui version="4.0">
  <class>ViewerWindow</class>
  <widget class="QWidget" name="ViewerWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>496</width>
+    <height>64</height>
+   </rect>
+  </property>
   <property name="mouseTracking">
    <bool>false</bool>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <property name="spacing">

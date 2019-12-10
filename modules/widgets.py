@@ -1,4 +1,5 @@
-from PySide2.QtCore import Qt, Signal
+from PySide2.QtCore import Qt, Signal, QObject
+from PySide2.QtGui import QDragMoveEvent
 from PySide2.QtWidgets import QComboBox, QWidget
 
 from modules.utils.globals import EXTRA_SIZE_FACTORS, MAX_SIZE_FACTOR, MIN_SIZE_FACTOR, SIZE_INCREMENT
@@ -45,14 +46,21 @@ class FileDropWidget(QWidget):
         super(FileDropWidget, self).__init__(parent)
         self.setAcceptDrops(True)
 
+    def dragMoveEvent(self, e: QDragMoveEvent):
+        if e.mimeData().hasUrls():
+            e.setDropAction(Qt.LinkAction)
+            e.accept(self.rect())
+        else:
+            e.ignore()
+
     def dragEnterEvent(self, e):
-        if e.mimeData().hasUrls:
+        if e.mimeData().hasUrls():
             e.acceptProposedAction()
         else:
             e.ignore()
 
     def dropEvent(self, e):
-        if e is None or not e.mimeData().hasUrls:
+        if e is None or not e.mimeData().hasUrls():
             e.ignore()
             return
 

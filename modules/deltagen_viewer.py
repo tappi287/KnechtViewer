@@ -1,5 +1,6 @@
+import datetime
 import re
-from pathlib import Path
+import time
 from threading import Event, Thread
 
 import win32gui
@@ -8,6 +9,7 @@ from pywinauto import Application
 
 from modules.knecht_socket import Ncat
 from modules.utils.globals import DG_TCP_IP, DG_TCP_PORT
+from modules.utils.gui_utils import MeasureExecTime
 from modules.utils.log import init_logging
 
 LOGGER = init_logging(__name__)
@@ -19,6 +21,7 @@ class Win32WindowMgr:
     def __init__(self):
         """Constructor"""
         self._handle = None
+        self._app = None
 
     def handle(self):
         if self.has_handle():
@@ -46,21 +49,38 @@ class Win32WindowMgr:
         LOGGER.debug('%s, %s, %s', hwnd, win32gui.GetWindowText(hwnd), win32gui.GetWindowRect(hwnd))
         return 1
 
-    @staticmethod
-    def find_deltagen_viewer_widget(hwnd):
+    def find_deltagen_viewer_widget(self):
         """ Find the DeltaGen viewer window inside window controls """
-        def find_last_untitled(parent_win, title='untitled'):
-            win = parent_win.child_window(title=title)
+        if not self.has_handle():
+            return None
 
-            while win.child_window(title=title).exists():
-                win = win.child_window(title=title)
+        if not self._app:
+            try:
+                self._app = Application().connect(handle=self._handle)
+            except Exception as e:
+                LOGGER.error(e, exc_info=1)
+                return None
 
-            return win.child_window(depth=1)
+        try:
+            dg_win = self._app.window(title_re='DELTAGEN *', found_index=0)
+            workspace = dg_win.child_window(title='workspace')
+            viewer_window = workspace.child_window(title='untitled', found_index=0)
+            viewer = None
 
-        app = Application().connect(handle=hwnd)
-        dg_win = app.window(title_re='DELTAGEN *')
-        workspace = dg_win.child_window(title='workspace')
-        viewer = find_last_untitled(workspace)
+            search_terms = ('pGLWidget',  # DeltaGen > 2017x
+                            ''            # DeltaGen 12.2
+                            )
+
+            for term in search_terms:
+                if viewer_window.child_window(title=term, found_index=0).exists():
+                    viewer = viewer_window.child_window(title=term, found_index=0)
+                    break
+
+            if not viewer:
+                return
+        except Exception as e:
+            LOGGER.error(e, exc_info=1)
+            return None
 
         return viewer
 
@@ -85,6 +105,8 @@ class DgSyncThreadSignals(QObject):
     set_btn_checked_signal = Signal(bool)
     position_img_viewer_signal = Signal(QPoint)
 
+    error_signal = Signal(str)
+
 
 class DgSyncThread(Thread):
     viewer_name_wildcard = '.* \[Camer.*\]$'  # Looking for window with name Scene_Name * [Camera]
@@ -93,7 +115,7 @@ class DgSyncThread(Thread):
     def __init__(self, viewer):
         """ Worker object to sync DG Viewer to Image Viewer position and size
 
-        :param KnechtImageViewer viewer: Image viewer parent
+        :param modules.img_view.ImageView viewer: Image viewer parent
         """
         super(DgSyncThread, self).__init__()
         self.viewer = viewer
@@ -118,6 +140,7 @@ class DgSyncThread(Thread):
         self.set_btn_enabled_signal.connect(self.viewer.dg_toggle_btn)
         self.set_btn_checked_signal = self.signals.set_btn_checked_signal
         self.set_btn_checked_signal.connect(self.viewer.dg_check_btn)
+        self.error = self.signals.error_signal
 
         self.signals.position_img_viewer_signal.connect(self.viewer.move)
 
@@ -127,8 +150,15 @@ class DgSyncThread(Thread):
         """
         while not self.exit_event.is_set():
             if self.sync_dg:
-                self.sync_img_viewer()
-                self.pull_dg_focus()
+                if not self.sync_img_viewer():
+                    # Not synced, toggle off
+                    LOGGER.debug('Sync unsuccessful, stopping sync.')
+                    self.dg_toggle_sync()
+                    self.error.emit(_('Synchronisation beendet. Keine Verbindung zum DeltaGen Host oder kein Viewer'
+                                      'Fenster gefunden.'))
+                else:
+                    # Synced
+                    self.pull_dg_focus()
             self.exit_event.wait(timeout=1.5)
 
         self.dg_close_connection()
@@ -136,9 +166,12 @@ class DgSyncThread(Thread):
     def dg_reset_btn(self):
         self.set_btn_enabled_signal.emit(True)
 
-    def sync_img_viewer(self):
+    def sync_img_viewer(self) -> bool:
         """ Resize DG Viewer widget and move img viewer to DG Viewer widget position """
-        self.ncat.check_connection()
+        if not self.ncat.deltagen_is_alive():
+            LOGGER.info('No socket connected to DeltaGen or no Viewer window active/in focus.')
+            return False
+
         size = f'{self.viewer.size().width()} {self.viewer.size().height()}'
         command = f'UNFREEZE VIEWER;SIZE VIEWER {size};'
         try:
@@ -147,29 +180,42 @@ class DgSyncThread(Thread):
         except Exception as e:
             LOGGER.error('Sending viewer size command failed. %s', e)
 
-        self.sync_window_position()
+        MeasureExecTime.start()
+        sync_result = self.sync_window_position()
+        MeasureExecTime.finish('Window Sync took')
+        return sync_result
 
-    def sync_window_position(self):
+    def sync_window_position(self) -> bool:
         """ Position the image viewer over the DeltaGen Viewport viewer """
         if not self.win_mgr.has_handle():
-            return
+            return False
 
-        try:
-            dg_viewer = self.win_mgr.find_deltagen_viewer_widget(self.win_mgr.handle())
-        except Exception as e:
-            LOGGER.error(e)
-            return
+        dg_viewer = self.win_mgr.find_deltagen_viewer_widget()
 
+        if not dg_viewer:
+            LOGGER.info('Could not find DeltaGen Viewer widget.')
+            return False
+
+        # - Get viewer OpenGl Area rectangle
+        MeasureExecTime.start()
         r = dg_viewer.rectangle()
+        MeasureExecTime.finish('Finding DG Viewer widget rectangle took')
+
+        # - Convert to QRect and QPoint
         x, y = r.left, r.top
         w, h = r.right - r.left, r.bottom - r.top
         viewer_rect = QRect(x, y, w, h)
+        pos = viewer_rect.topLeft()
 
-        LOGGER.debug('DeltaGen Viewer found at %s %s %s %s', x, y, w, h)
-        self.signals.position_img_viewer_signal.emit(viewer_rect.topLeft())
+        # - Check if is inside screen limits
+        # (minimizing the window will move it's position to eg. -33330)
+        if self.viewer.is_inside_limit(self.viewer.calculate_screen_limits(), pos):
+            LOGGER.debug('DeltaGen Viewer found at %s %s %s %s', x, y, w, h)
+            self.signals.position_img_viewer_signal.emit(pos)
+
+        return True
 
     def dg_reset_viewer(self):
-        self.ncat.check_connection()
         try:
             self.ncat.send('BORDERLESS VIEWER FALSE;')
         except Exception as e:
@@ -190,12 +236,11 @@ class DgSyncThread(Thread):
         self.set_btn_checked_signal.emit(self.sync_dg)
         self.dg_btn_timeout.start()
 
+        LOGGER.debug(f'Toggled sync {"on" if self.sync_dg else "off"}.', )
+
         if self.sync_dg:
-            if self.ncat.deltagen_is_alive():
-                self.find_dg_window()
-                self.pull_viewer_on_sync_start = True
-            else:
-                self.dg_toggle_sync()  # No connection, toggle sync off
+            self.find_dg_window()
+            self.pull_viewer_on_sync_start = True
         else:
             self.dg_reset_viewer()
 
@@ -236,12 +281,21 @@ class SyncController(QObject):
     toggle_pull_signal = Signal(bool)
 
     def __init__(self, viewer):
+        """ Worker object to sync DG Viewer to Image Viewer position and size
+
+        :param modules.img_view.ImageView viewer: Image viewer parent
+        """
         super(SyncController, self).__init__(viewer)
         global LOGGER
         LOGGER = init_logging(__name__)
 
         self.viewer = viewer
-        self.thread = DgSyncThread(viewer)
+        self.thread = None
+        self._setup_thread()
+
+    def _setup_thread(self):
+        self.thread = DgSyncThread(self.viewer)
+        self.thread.error.connect(self.report_sync_error)
         self.toggle_sync_signal.connect(self.thread.dg_toggle_sync)
         self.toggle_pull_signal.connect(self.thread.viewer_toggle_pull)
 
@@ -252,6 +306,9 @@ class SyncController(QObject):
     def toggle_pull(self):
         enabled = self.viewer.ui.focus_btn.isChecked()
         self.toggle_pull_signal.emit(enabled)
+
+    def report_sync_error(self, msg):
+        self.viewer.info_overlay.display(msg, duration=5000)
 
     def start(self):
         if not self.thread.is_alive():
