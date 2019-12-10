@@ -1,16 +1,17 @@
 import logging
-import numpy as np
+from datetime import datetime, timedelta
 from pathlib import Path
 from time import time
-from datetime import datetime, timedelta
+from typing import Union
 
-from PySide2.QtCore import QFile, QObject, Slot, QEvent, Signal, QTimer, Qt
-from PySide2.QtGui import QMouseEvent
-from PySide2.QtWidgets import QWidget
+import numpy as np
+from PySide2.QtCore import QEvent, QFile, QObject, QRect, QTimer, Qt, Signal, Slot
+from PySide2.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QMouseEvent, Qt
+from PySide2.QtWidgets import QTreeView, QWidget
 
-from modules.utils.globals import UI_PATH, get_settings_dir, get_current_modules_dir
-from modules.utils.ui_loader import loadUi
+from modules.utils.globals import UI_PATH, get_current_modules_dir, get_settings_dir
 from modules.utils.log import init_logging
+from modules.utils.ui_loader import loadUi
 
 LOGGER = init_logging(__name__)
 
@@ -25,6 +26,55 @@ class MeasureExecTime:
     @classmethod
     def finish(cls, msg='Generic Call took:'):
         LOGGER.debug('%s %s', msg, timedelta(seconds=time() - cls._start_time))
+
+
+def handle_drag_event(e: Union[QDragMoveEvent, QDragEnterEvent], rect: QRect):
+    """ Accept all URLs in dragEnter and dragMove Events inside the provided rect """
+    LOGGER.debug('Drag event in %s', rect)
+
+    if e.mimeData().hasUrls():
+        e.setDropAction(Qt.LinkAction)
+        e.accept(rect)
+    else:
+        e.ignore()
+
+
+def handle_drop_event(e: QDropEvent, callback):
+    LOGGER.debug('Drop event.')
+
+    for url in e.mimeData().urls():
+        if url.isLocalFile():
+            callback(url.toLocalFile())
+            e.accept()
+            return
+
+    e.ignore()
+
+
+class DragNDropHandler(QObject):
+    file_dropped = Signal(str)
+
+    def __init__(self, widget: Union[QWidget, QTreeView]):
+        super(DragNDropHandler, self).__init__(widget)
+
+        if type(widget) is QTreeView:
+            widget.setDragDropMode(QTreeView.DragDrop)
+
+        widget.dropEvent = self.drop_event
+        widget.dragEnterEvent = self.drag_enter_event
+        widget.dragMoveEvent = self.drag_move_event
+        widget.setAcceptDrops(True)
+
+        self.widget = widget
+
+    def drag_move_event(self, e: QDragMoveEvent):
+        handle_drag_event(e, self.widget.rect())
+
+    def drag_enter_event(self, e: QDragEnterEvent):
+        handle_drag_event(e, self.widget.rect())
+
+    def drop_event(self, e: QDropEvent):
+        handle_drop_event(e, self.file_dropped.emit)
 
 
 def replace_widget(old_widget, new_widget):

@@ -2,16 +2,16 @@ from pathlib import Path
 
 from PySide2.QtCore import QEvent, QPoint, QRect, QSize, QTimer, Qt
 from PySide2.QtGui import QKeySequence
-from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QShortcut, QSizePolicy
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QShortcut, QSizePolicy, QWidget
 
 from modules.deltagen_viewer import SyncController
 from modules.utils.globals import MAX_SIZE_FACTOR
+from modules.utils.gui_utils import DragNDropHandler
 from modules.utils.img_loader import KnechtLoadImageController
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 from modules.utils.ui_overlay import InfoOverlay
 from modules.utils.ui_resource import IconRsc
-from modules.widgets import FileDropWidget
 
 LOGGER = init_logging(__name__)
 
@@ -74,7 +74,7 @@ class ViewerShortcuts:
         dg.activated.connect(self.viewer.dg_toggle_sync)
 
 
-class ImageView(FileDropWidget):
+class ImageView(QWidget):
     button_timeout = QTimer()
     button_timeout.setInterval(100)
     button_timeout.setSingleShot(True)
@@ -137,27 +137,33 @@ class ImageView(FileDropWidget):
         LOGGER.debug('Image View: %s', self.geometry())
 
         self.slider_timeout.timeout.connect(self.set_opacity_from_slider)
+        self.ui.opacity_slider.setToolTip(_('Transparenz der Bildfläche festlegen [W/S]'))
         self.ui.opacity_slider.sliderReleased.connect(self.slider_timeout.start)
         self.ui.opacity_slider.valueChanged.connect(self.slider_timeout.start)
 
         self.ui.zoom_box.currentIndexChanged.connect(self.combo_box_size)
+        self.ui.zoom_box.setToolTip(_('Anzeigegröße der Bilddatei anpassen [Q/E]'))
 
         self.ui.back_btn.pressed.connect(self.iterate_bck)
+        self.ui.back_btn.setToolTip(_('Datei zurück navigieren [A oder <= Pfeiltaste]'))
         self.ui.fwd_btn.pressed.connect(self.iterate_fwd)
-        self.ui.top_btn: QPushButton
+        self.ui.fwd_btn.setToolTip(_('Datei vorwärts navigieren [D oder => Pfeiltaste]'))
         self.ui.top_btn.setToolTip(_('Bildfläche immer im Vordergrund'))
         self.ui.top_btn.toggled.connect(self.toggle_stay_on_top)
-
+        self.ui.vis_btn.setToolTip(_('Sichtbarkeit der Bildfläche an/aus [Tab]'))
         self.ui.vis_btn.toggled.connect(self.toggle_img_canvas)
+        self.ui.input_btn.setToolTip(_('Maus und Tastatureingabe für Bildfläche de-/aktivieren'))
+        self.ui.input_btn.pressed.connect(self.toggle_input_transparency)
 
         # --- DeltaGen Sync ---
-        self.ui.sync_btn: QPushButton
         self.ui.sync_btn.setText(_('Sync DeltaGen Viewer'))
+        self.ui.sync_btn.setToolTip(_('Bildfläche periodisch zum DeltaGen Viewer verschieben [F]'))
         self.ui.sync_btn.toggled.connect(self.dg_toggle_sync)
-        self.ui.focus_btn: QPushButton
+        self.ui.help_btn.setToolTip(_('Hilfe anzeigen'))
+        self.ui.help_btn.pressed.connect(self.display_shortcuts)
         self.ui.focus_btn.setText(_('Pull DeltaGen Focus'))
         self.ui.focus_btn.pressed.connect(self.dg_toggle_pull)
-        # Pull focus is no longer necessary
+        # Pulling focus is no longer necessary
         self.ui.focus_btn.hide()
 
         # --- DG Send thread controller ---
@@ -168,12 +174,11 @@ class ImageView(FileDropWidget):
         self.shortcuts.set_shortcuts(self.ui)
 
         # --- Drag n Drop ---
-        self.file_dropped.connect(self.ui.file_changed)
+        self.drag_drop = DragNDropHandler(self)
+        self.drag_drop.file_dropped.connect(self.ui.file_changed)
 
         # --- Info Overlay ---
         self.info_overlay = InfoOverlay(self)
-
-        self.ui.help_btn.pressed.connect(self.display_shortcuts)
 
         self.place_in_screen_center()
 
@@ -214,6 +219,12 @@ class ImageView(FileDropWidget):
                 '<br><br>'
                 'Unterstütze Formate: {}'
                 ).format(' '.join(self.img_load_controller.FILE_TYPES))
+
+        # Ensure visibility of image canvas
+        if self.current_opacity < 0.7 or self.ui.vis_btn.isChecked():
+            self.set_window_opacity(1.0)
+            if self.ui.vis_btn.isChecked():
+                self.ui.vis_btn.toggle()
 
         if keep_overlay:
             self.info_overlay.display_confirm(msg, (('[X]', None), ))
@@ -399,27 +410,33 @@ class ImageView(FileDropWidget):
     def toggle_stay_on_top(self):
         if self.shortcut_timeout.isActive():
             return
-
-        on_top = True
-
         self.hide()
+
         if self.windowFlags() & Qt.WindowStaysOnTopHint:
             LOGGER.debug('Window no longer stays on top.')
-            # self.setWindowFlag(Qt.WindowStaysOnTopHint, False)
-            self.setWindowFlags(self.windowFlags() & ~Qt.WindowStaysOnTopHint)
-            on_top = False
+            self.setWindowFlag(Qt.WindowStaysOnTopHint, False)
+            self.info_overlay.display(_('Bildfläche erscheint nun nicht mehr im Vordergrund'), immediate=True)
         else:
             LOGGER.debug('Window now stays on top.')
-            # self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
-            self.setWindowFlags(self.windowFlags() | Qt.WindowStaysOnTopHint)
+            self.info_overlay.display(_('Bildfläche erscheint nun immer im Vordergrund'), immediate=True)
+            self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
 
         self.show()
+        self.shortcut_timeout.start()
 
-        if on_top:
-            self.info_overlay.display(_('Bildfläche erscheint nun immer im Vordergrund'))
+    def toggle_input_transparency(self):
+        if self.shortcut_timeout.isActive():
+            return
+        self.hide()
+
+        if self.windowFlags() & Qt.WindowTransparentForInput:
+            self.setWindowFlag(Qt.WindowTransparentForInput, False)
+            self.info_overlay.display(_('Maus und Tastatureingabe für Bildfläche aktiviert.'), immediate=True)
         else:
-            self.info_overlay.display(_('Bildfläche erscheint nun nicht mehr im Vordergrund'))
+            self.setWindowFlag(Qt.WindowTransparentForInput, True)
+            self.info_overlay.display(_('Maus und Tastatureingabe für Bildfläche deaktiviert.'), immediate=True)
 
+        self.show()
         self.shortcut_timeout.start()
 
     def hide_all(self):

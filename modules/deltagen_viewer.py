@@ -1,18 +1,26 @@
-import datetime
 import re
-import time
+import sys
 from threading import Event, Thread
 
-import win32gui
-from PySide2.QtCore import QObject, QTimer, Signal, Slot, QRect, QPoint
-from pywinauto import Application
+# https://github.com/pywinauto/pywinauto/issues/472
+sys.coinit_flags = 2  # Fix all kinds of Qt Conflicts after importing pywinauto
 
+import win32gui
+
+from pywinauto import Application
+from PySide2.QtCore import QObject, QTimer, Signal, Slot, QRect, QPoint
+from modules.utils.language import get_translation
 from modules.knecht_socket import Ncat
 from modules.utils.globals import DG_TCP_IP, DG_TCP_PORT
 from modules.utils.gui_utils import MeasureExecTime
 from modules.utils.log import init_logging
 
 LOGGER = init_logging(__name__)
+
+# translate strings
+lang = get_translation()
+lang.install()
+_ = lang.gettext
 
 
 class Win32WindowMgr:
@@ -149,6 +157,7 @@ class DgSyncThread(Thread):
             is scheduled, loop will pick up send operation on next loop cycle.
         """
         while not self.exit_event.is_set():
+            sync_refresh_rate = 1.5  # seconds
             if self.sync_dg:
                 if not self.sync_img_viewer():
                     # Not synced, toggle off
@@ -158,8 +167,9 @@ class DgSyncThread(Thread):
                                       'Fenster gefunden.'))
                 else:
                     # Synced
+                    sync_refresh_rate = 0.8  # sync quicker if enabled
                     self.pull_dg_focus()
-            self.exit_event.wait(timeout=1.5)
+            self.exit_event.wait(timeout=sync_refresh_rate)
 
         self.dg_close_connection()
 

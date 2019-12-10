@@ -1,18 +1,17 @@
 from pathlib import Path
 from typing import Union
 
-from PySide2.QtCore import QTimer, Qt, QPoint, QEvent, QObject
-from PySide2.QtGui import QDragEnterEvent, QDropEvent
-from PySide2.QtWidgets import QComboBox, QLineEdit, QSlider, QToolButton, QWidget, QMainWindow
+from PySide2.QtCore import QPoint, QTimer, Qt
+from PySide2.QtWidgets import QComboBox, QLineEdit, QSlider, QToolButton, QWidget
 
 from modules.img_view import ImageView
 from modules.utils.globals import APP_NAME, Resource
-from modules.utils.gui_utils import SetupWidget, replace_widget
+from modules.utils.gui_utils import DragNDropHandler, SetupWidget, replace_widget
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 from modules.utils.path_util import SetDirectoryPath
 from modules.utils.ui_resource import IconRsc
-from modules.widgets import FileDropWidget, ViewerSizeBox
+from modules.widgets import ViewerSizeBox
 
 LOGGER = init_logging(__name__)
 
@@ -22,7 +21,7 @@ lang.install()
 _ = lang.gettext
 
 
-class ViewerWindow(FileDropWidget):
+class ViewerWindow(QWidget):
     VIEWER_Y_MARGIN = 2
 
     def __init__(self, app):
@@ -72,14 +71,16 @@ class ViewerWindow(FileDropWidget):
         # --- Image View ---
         self.img_view = ImageView(app, self)
 
+        # --- Drag n Drop ---
+        drag_drop = DragNDropHandler(self)
+        drag_drop.file_dropped.connect(self.file_changed)
+
         # --- --- Setup Window Movement --- ---
         # Install viewer move and resize wrapper
         self.org_img_view_resize_event = self.img_view.resizeEvent
         self.img_view.resizeEvent = self._img_view_resize_wrapper
         self.org_img_view_move_event = self.img_view.moveEvent
         self.img_view.moveEvent = self._img_view_move_wrapper
-
-        self.file_dropped.connect(self.file_changed)
 
         QTimer.singleShot(50, self.window_shown)
 

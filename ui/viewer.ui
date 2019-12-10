@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>496</width>
+    <width>501</width>
     <height>64</height>
    </rect>
   </property>
@@ -84,7 +84,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/eye.png</normaloff>
          <normalon>:/main/eye_disabled.png</normalon>:/main/eye.png</iconset>
        </property>
@@ -102,9 +102,26 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/img_pin.png</normaloff>
          <normalon>:/main/collections.svg</normalon>:/main/img_pin.png</iconset>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="input_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset>
+         <normaloff>:/main/open.svg</normaloff>:/main/open.svg</iconset>
        </property>
        <property name="checkable">
         <bool>true</bool>
@@ -154,7 +171,7 @@
         <string>Sync DeltaGen Viewer</string>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/compare.svg</normaloff>:/main/compare.svg</iconset>
        </property>
        <property name="checkable">
@@ -168,7 +185,7 @@
         <string>Pull DeltaGen Focus</string>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/open.svg</normaloff>:/main/open.svg</iconset>
        </property>
        <property name="checkable">
@@ -195,7 +212,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/back.svg</normaloff>:/main/back.svg</iconset>
        </property>
       </widget>
@@ -206,7 +223,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/forward.svg</normaloff>:/main/forward.svg</iconset>
        </property>
       </widget>
@@ -217,7 +234,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="res/viewer_resource.qrc">
+        <iconset>
          <normaloff>:/main/help.png</normaloff>:/main/help.png</iconset>
        </property>
       </widget>

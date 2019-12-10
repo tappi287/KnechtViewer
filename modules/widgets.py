@@ -36,37 +36,3 @@ class ViewerSizeBox(QComboBox):
         """ Reset to 100% / 1.0 """
         idx = self.findData(1.0)
         self.setCurrentIndex(idx)
-
-
-class FileDropWidget(QWidget):
-    """ QWidget that accepts file drops """
-    file_dropped = Signal(str)
-
-    def __init__(self, parent=None):
-        super(FileDropWidget, self).__init__(parent)
-        self.setAcceptDrops(True)
-
-    def dragMoveEvent(self, e: QDragMoveEvent):
-        if e.mimeData().hasUrls():
-            e.setDropAction(Qt.LinkAction)
-            e.accept(self.rect())
-        else:
-            e.ignore()
-
-    def dragEnterEvent(self, e):
-        if e.mimeData().hasUrls():
-            e.acceptProposedAction()
-        else:
-            e.ignore()
-
-    def dropEvent(self, e):
-        if e is None or not e.mimeData().hasUrls():
-            e.ignore()
-            return
-
-        for url in e.mimeData().urls():
-            if url.isLocalFile():
-                file_url = url.toLocalFile()
-                LOGGER.info('Dropped URL: %s', file_url)
-                self.file_dropped.emit(file_url)
-        e.accept()

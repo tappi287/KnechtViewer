@@ -37,7 +37,7 @@ class DragNDropHandler(QObject):
         widget.dropEvent = self.drop_event
         widget.dragEnterEvent = self.drag_enter_event
         widget.dragMoveEvent = self.drag_move_event
-        widget.setAcceptDrops(True)
+        # widget.setAcceptDrops(True)
 
         self.widget = widget
 
@@ -51,7 +51,7 @@ class DragNDropHandler(QObject):
         handle_drop_event(e, self.file_dropped.emit)
 
 
-def create_ui_contents(parent: Union[QWidget, QMainWindow], layout: QVBoxLayout) -> QWidget:
+def create_ui_contents(parent: Union[QWidget, QMainWindow], layout: QVBoxLayout) -> QLabel:
     """ Fill either Window or Widget example with UI Elements """
     label = QLabel('Drag file from your local file system on this window', parent)
     layout.addWidget(label)
@@ -64,7 +64,8 @@ def create_ui_contents(parent: Union[QWidget, QMainWindow], layout: QVBoxLayout)
     tree_view.drag_n_drop_handler.file_dropped.connect(file_label.setText)
     layout.addWidget(tree_view)
 
-    parent.setWindowTitle('DnD Example')
+    print(type(parent), parent.__class__)
+    parent.setWindowTitle('DnD Example Window' if type(parent) is ExampleWindow else 'DnD Example Widget')
     parent.setGeometry(800, 600, 800, 400)
     parent.setAcceptDrops(True)
 
@@ -73,7 +74,7 @@ def create_ui_contents(parent: Union[QWidget, QMainWindow], layout: QVBoxLayout)
 
 class ExampleWindow(QMainWindow):
     def __init__(self):
-        super().__init__()
+        super(ExampleWindow, self).__init__()
         central_widget, layout = QWidget(self), QVBoxLayout(self)
         central_widget.setLayout(layout)
         self.setCentralWidget(central_widget)
@@ -99,21 +100,16 @@ class ExampleWidget(QWidget):
         self.file_label = create_ui_contents(self, layout)
         self.setLayout(layout)
 
-    def dragEnterEvent(self, event: QDragEnterEvent):
-        handle_drag_event(event, self.rect())
-
-    def dragMoveEvent(self, event: QDragMoveEvent):
-        handle_drag_event(event, self.rect())
-
-    def dropEvent(self, event: QDropEvent):
-        handle_drop_event(event, self.file_label.setText)
+        dnd = DragNDropHandler(self)
+        dnd.file_dropped.connect(self.file_label.setText)
 
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    ex = ExampleWindow()
+    # ex = ExampleWindow()
+    # ex.show()
+
     ex_widget = ExampleWidget()
-    ex.show()
     ex_widget.show()
 
     app.exec_()
