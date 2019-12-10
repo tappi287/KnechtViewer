@@ -14,6 +14,7 @@ jsonpickle = "*"
 lxml = "*"
 openimageio = {file = "https://piwigo.ilikeviecher.com/ftp-upload/packages/OpenImageIO-2.0.7-cp37-cp37m-win_amd64.whl"}
 pywin32 = "*"
+pywinauto = "*"
 
 [requires]
 python_version = "3.7"

@@ -2,10 +2,10 @@ from pathlib import Path
 
 from PySide2.QtCore import QEvent, QPoint, QRect, QSize, QTimer, Qt
 from PySide2.QtGui import QKeySequence
-from PySide2.QtWidgets import QHBoxLayout, QLabel, QShortcut, QSizePolicy, QPushButton
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QShortcut, QSizePolicy
 
-from modules.deltagen_viewer import KnechtImageViewerSendController
-from modules.utils.globals import MAX_SIZE_FACTOR, APP_NAME
+from modules.deltagen_viewer import SyncController
+from modules.utils.globals import MAX_SIZE_FACTOR
 from modules.utils.img_loader import KnechtLoadImageController
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
@@ -159,7 +159,7 @@ class ImageView(FileDropWidget):
         self.ui.focus_btn.pressed.connect(self.dg_toggle_pull)
 
         # --- DG Send thread controller ---
-        self.dg_thread = KnechtImageViewerSendController(self)
+        self.dg_thread = SyncController(self)
 
         # --- Shortcuts ---
         self.shortcuts = ViewerShortcuts(self, self.ui)
