@@ -52,6 +52,7 @@ def main():
         shutdown(log_listener)
         return
 
+    KnechtSettings.load()
     print(Resource.ui_paths)
 
     #
@@ -68,6 +69,7 @@ def main():
     LOGGER.debug('---------------------------------------')
     LOGGER.debug('Qt application finished with exitcode %s', result)
 
+    KnechtSettings.save()
     #
     #
     shutdown(log_listener)

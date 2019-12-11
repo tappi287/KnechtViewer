@@ -9,7 +9,8 @@ from modules.utils.globals import APP_NAME, Resource
 from modules.utils.gui_utils import DragNDropHandler, SetupWidget, replace_widget
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
-from modules.utils.path_util import SetDirectoryPath
+from modules.utils.path_util import SetDirectoryPath, path_exists
+from modules.utils.settings import KnechtSettings
 from modules.utils.ui_resource import IconRsc
 from modules.widgets import ViewerSizeBox
 
@@ -43,19 +44,6 @@ class ViewerWindow(QWidget):
         self.resize(1280, 1)
 
         # --- --- Setup Widgets --- ---
-        # --- Setup Path LineEdit and ToolButton ---
-        self.path_edit: QLineEdit
-        self.path_btn: QToolButton
-        self.path_edit.setPlaceholderText(_('Dateien oder Ordner in das Fenster ziehen oder hier Pfad einfügen.'))
-        self.path_edit.setFocusPolicy(Qt.ClickFocus)
-        self.path_btn.setFocusPolicy(Qt.ClickFocus)
-        self.path_util = SetDirectoryPath(self, 'file', self.path_edit, self.path_btn, reject_invalid_path_edits=False)
-        self.path_util.path_changed.connect(self.file_changed)
-
-        self.path_util.dialog_opened.connect(self._path_dialog_opened)
-        self.path_util.dialog_closed.connect(self._path_dialog_closed)
-        self.previous_top_btn_state = True
-
         # --- Setup Size ComboBox ---
         self.zoom_box: QComboBox
         self.zoom_box = replace_widget(self.zoom_box, ViewerSizeBox(self))
@@ -70,6 +58,20 @@ class ViewerWindow(QWidget):
 
         # --- Image View ---
         self.img_view = ImageView(app, self)
+
+        # --- Setup Path LineEdit and ToolButton ---
+        self.path_edit: QLineEdit
+        self.path_btn: QToolButton
+        self.path_edit.setPlaceholderText(_('Dateien oder Ordner in das Fenster ziehen oder hier Pfad einfügen.'))
+        self.path_edit.setFocusPolicy(Qt.ClickFocus)
+        self.path_btn.setFocusPolicy(Qt.ClickFocus)
+        self.path_util = SetDirectoryPath(self, 'file', self.path_edit, self.path_btn, reject_invalid_path_edits=False)
+
+        self.load_settings()
+
+        self.path_util.path_changed.connect(self.file_changed)
+        self.path_util.dialog_opened.connect(self._path_dialog_opened)
+        self.path_util.dialog_closed.connect(self._path_dialog_closed)
 
         # --- Drag n Drop ---
         drag_drop = DragNDropHandler(self)
@@ -86,12 +88,25 @@ class ViewerWindow(QWidget):
 
     def window_shown(self):
         self.setFixedHeight(self.size().height())
+
+        self.img_view.set_default_image()
         self.img_view.show_all()
         self.img_view.display_shortcuts(keep_overlay=False)
 
         # Move to screen center
         new_position = QPoint(self.x(), self.y() - round(self.img_view.height() / 2))
         self.move(new_position)
+
+    def load_settings(self):
+        current_path = Path(KnechtSettings.app.get('current_path'))
+        if current_path != Path('.') and path_exists(current_path):
+            self.path_util.set_path(current_path)
+            self.img_view.img_load_controller.set_img_path(current_path, skip_load=True)
+
+        if KnechtSettings.app.get('img_stay_on_top') is False:
+            self.top_btn.setChecked(self.img_view.switch_stay_on_top())
+        if KnechtSettings.app.get('img_input_transparent') is True:
+            self.input_btn.setChecked(not self.img_view.switch_input_transparency())
 
     def _path_dialog_opened(self):
         """ Toggle Image Canvas Stay On Top while Path Dialog opened """

@@ -10,6 +10,7 @@ from modules.utils.gui_utils import DragNDropHandler
 from modules.utils.img_loader import KnechtLoadImageController
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
+from modules.utils.settings import KnechtSettings
 from modules.utils.ui_overlay import InfoOverlay
 from modules.utils.ui_resource import IconRsc
 
@@ -134,6 +135,8 @@ class ImageView(QWidget):
         self.img_canvas.setScaledContents(True)
         self.img_canvas.setObjectName('img_canvas')
         self.set_default_image()
+        self.ui.reset()
+
         LOGGER.debug('Image View: %s', self.geometry())
 
         self.slider_timeout.timeout.connect(self.set_opacity_from_slider)
@@ -149,11 +152,11 @@ class ImageView(QWidget):
         self.ui.fwd_btn.pressed.connect(self.iterate_fwd)
         self.ui.fwd_btn.setToolTip(_('Datei vorwärts navigieren [D oder => Pfeiltaste]'))
         self.ui.top_btn.setToolTip(_('Bildfläche immer im Vordergrund'))
-        self.ui.top_btn.toggled.connect(self.toggle_stay_on_top)
+        self.ui.top_btn.released.connect(self.toggle_stay_on_top)
         self.ui.vis_btn.setToolTip(_('Sichtbarkeit der Bildfläche an/aus [Tab]'))
-        self.ui.vis_btn.toggled.connect(self.toggle_img_canvas)
+        self.ui.vis_btn.released.connect(self.toggle_img_canvas)
         self.ui.input_btn.setToolTip(_('Maus und Tastatureingabe für Bildfläche de-/aktivieren'))
-        self.ui.input_btn.pressed.connect(self.toggle_input_transparency)
+        self.ui.input_btn.released.connect(self.toggle_input_transparency)
 
         # --- DeltaGen Sync ---
         self.ui.sync_btn.setText(_('Sync DeltaGen Viewer'))
@@ -238,7 +241,6 @@ class ImageView(QWidget):
         self.img_size = self.current_img.size()
         self.img_size_factor = 1.0
 
-        self.ui.reset()
         self.change_viewer_size()
 
     # ------ DeltaGen Sync -------
@@ -286,6 +288,8 @@ class ImageView(QWidget):
 
     def no_image_found(self):
         self.set_default_image()
+        self.ui.reset()
+
         self.info_overlay.display(_('Keine Bilddaten im Verzeichnis gefunden.'))
 
     def image_load_failed(self, error_msg=''):
@@ -297,12 +301,20 @@ class ImageView(QWidget):
         LOGGER.error('Could not load image file:\n%s', error_msg)
 
         self.set_default_image()
+        self.ui.reset()
+
         self.img_loader = None
 
         self.info_overlay.display(_('Konnte keine Bilddaten laden: {}<br>{}').format(error_msg, img_path.as_posix()),
                                   8000, immediate=True)
 
     def image_loaded(self, image):
+        def valid_img_name(img_path: Path) -> str:
+            name = img_path.name
+            if len(name) >= 85:
+                name = f'{name[:65]}~{name[-20:]}'
+            return name
+
         if not image:
             self.image_load_failed()
             return
@@ -313,17 +325,22 @@ class ImageView(QWidget):
         self.img_size = self.current_img.size()
         self.change_viewer_size()
 
-        img_path = self.img_load_controller.current_image()
-
-        img_name = img_path.name
-        if len(img_name) >= 85:
-            img_name = f'{img_name[:65]}~{img_name[-20:]}'
+        prev_img_name = valid_img_name(self.img_load_controller.prev_image())
+        img_name = valid_img_name(self.img_load_controller.current_image())
+        next_img_name = valid_img_name(self.img_load_controller.next_image())
 
         self.ui.setWindowTitle(img_name)
 
-        self.info_overlay.display(
-            f'{1+self.img_load_controller.img_index}/{len(self.img_load_controller.img_list)} - {img_name}',
-            2000, immediate=True)
+        i = f'<span style="color: rgb(180, 180, 180);">' \
+            f'{self.img_load_controller.get_valid_img_list_index(self.img_load_controller.img_index-1)+1:02d}/' \
+            f'{len(self.img_load_controller.img_list):02d} - {prev_img_name}</span><br />'\
+            f'{1+self.img_load_controller.img_index:02d}/' \
+            f'{len(self.img_load_controller.img_list):02d} - {img_name}<br />' \
+            f'<span style="color: rgb(180, 180, 180);">' \
+            f'{self.img_load_controller.get_valid_img_list_index(self.img_load_controller.img_index+1)+1:02d}' \
+            f'/{len(self.img_load_controller.img_list):02d} - {next_img_name}</span>'
+
+        self.info_overlay.display(i, 3000, immediate=True)
 
     # ------ RESIZE -------
     def combo_box_size(self, idx):
@@ -407,36 +424,45 @@ class ImageView(QWidget):
 
         self.shortcut_timeout.start()
 
+    def _toggle_window_flag(self, window_flag: Qt) -> bool:
+        enabled = False if self.windowFlags() & window_flag else True
+
+        self.hide()
+        self.setWindowFlag(window_flag, enabled)
+        self.show()
+
+        return enabled
+
+    def switch_stay_on_top(self) -> bool:
+        enabled = self._toggle_window_flag(Qt.WindowStaysOnTopHint)
+        KnechtSettings.app['img_stay_on_top'] = enabled
+        return enabled
+
     def toggle_stay_on_top(self):
         if self.shortcut_timeout.isActive():
             return
-        self.hide()
 
-        if self.windowFlags() & Qt.WindowStaysOnTopHint:
-            LOGGER.debug('Window no longer stays on top.')
-            self.setWindowFlag(Qt.WindowStaysOnTopHint, False)
-            self.info_overlay.display(_('Bildfläche erscheint nun nicht mehr im Vordergrund'), immediate=True)
-        else:
-            LOGGER.debug('Window now stays on top.')
-            self.info_overlay.display(_('Bildfläche erscheint nun immer im Vordergrund'), immediate=True)
-            self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+        enabled = self.switch_stay_on_top()
+        self.info_overlay.display(_('Bildfläche erscheint nun nicht mehr im Vordergrund')
+                                  if not enabled else _('Bildfläche erscheint nun immer im Vordergrund'),
+                                  immediate=True)
 
-        self.show()
         self.shortcut_timeout.start()
+
+    def switch_input_transparency(self):
+        enabled = self._toggle_window_flag(Qt.WindowTransparentForInput)
+        KnechtSettings.app['img_input_transparent'] = enabled
+        return enabled
 
     def toggle_input_transparency(self):
         if self.shortcut_timeout.isActive():
             return
-        self.hide()
 
-        if self.windowFlags() & Qt.WindowTransparentForInput:
-            self.setWindowFlag(Qt.WindowTransparentForInput, False)
-            self.info_overlay.display(_('Maus und Tastatureingabe für Bildfläche aktiviert.'), immediate=True)
-        else:
-            self.setWindowFlag(Qt.WindowTransparentForInput, True)
-            self.info_overlay.display(_('Maus und Tastatureingabe für Bildfläche deaktiviert.'), immediate=True)
+        enabled = self.switch_input_transparency()
+        self.info_overlay.display(_('Maus und Tastatureingabe für Bildfläche aktiviert.')
+                                  if not enabled else _('Maus und Tastatureingabe für Bildfläche deaktiviert.'),
+                                  immediate=True)
 
-        self.show()
         self.shortcut_timeout.start()
 
     def hide_all(self):

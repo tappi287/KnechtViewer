@@ -6,6 +6,7 @@ from PySide2.QtGui import QImage, QPixmap
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 from modules.utils.img_utils import read_to_qpixmap
+from modules.utils.settings import KnechtSettings
 
 LOGGER = init_logging(__name__)
 
@@ -65,14 +66,17 @@ class KnechtLoadImageController(QObject):
         self.load_timeout.timeout.connect(self.kill_load_thread)
 
     # ------ IMAGES -------
-    def set_img_path(self, img_file_path: Path):
+    def set_img_path(self, img_file_path: Path, skip_load: bool=False):
         if img_file_path.is_file():
             self.img_dir = img_file_path.parent
         else:
             self.img_dir = img_file_path
 
         self.list_img_files(img_file_path)
-        self.iterate_images()
+        KnechtSettings.app['current_path'] = self.img_dir.as_posix()
+        LOGGER.debug('Updated settings path with %s', self.img_dir.as_posix())
+        if not skip_load:
+            self.iterate_images()
 
     def list_img_files(self, current_file: Path):
         self.img_index = 0
@@ -101,16 +105,20 @@ class KnechtLoadImageController(QObject):
         self.img_index -= 1
         self.iterate_images()
 
+    def get_valid_img_list_index(self, idx: int):
+        if idx < 0:
+            return len(self.img_list) - 1
+        if idx >= len(self.img_list):
+            return 0
+
+        return idx
+
     def iterate_images(self):
         if not self.img_list:
             self.img_view.no_image_found()
             return
 
-        if self.img_index < 0:
-            self.img_index = len(self.img_list) - 1
-
-        if self.img_index >= len(self.img_list):
-            self.img_index = 0
+        self.img_index = self.get_valid_img_list_index(self.img_index)
 
         img_path = self.img_list[self.img_index]
         LOGGER.info('Image load Controller iterated to image: %s', img_path.as_posix())
@@ -118,6 +126,12 @@ class KnechtLoadImageController(QObject):
 
     def current_image(self):
         return self.img_list[self.img_index]
+
+    def prev_image(self):
+        return self.img_list[self.get_valid_img_list_index(self.img_index - 1)]
+
+    def next_image(self):
+        return self.img_list[self.get_valid_img_list_index(self.img_index + 1)]
 
     def _image_loader_available(self):
         if self.img_loader is not None and self.img_loader.isRunning():

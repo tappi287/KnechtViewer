@@ -25,13 +25,12 @@ class MeasureExecTime:
 
     @classmethod
     def finish(cls, msg='Generic Call took:'):
-        LOGGER.debug('%s %s', msg, timedelta(seconds=time() - cls._start_time))
+        t = timedelta(seconds=time() - cls._start_time)
+        LOGGER.debug('%s %s', msg, f'{t.seconds}s / {t.microseconds}ms')
 
 
 def handle_drag_event(e: Union[QDragMoveEvent, QDragEnterEvent], rect: QRect):
     """ Accept all URLs in dragEnter and dragMove Events inside the provided rect """
-    LOGGER.debug('Drag event in %s', rect)
-
     if e.mimeData().hasUrls():
         e.setDropAction(Qt.LinkAction)
         e.accept(rect)
@@ -40,8 +39,6 @@ def handle_drag_event(e: Union[QDragMoveEvent, QDragEnterEvent], rect: QRect):
 
 
 def handle_drop_event(e: QDropEvent, callback):
-    LOGGER.debug('Drop event.')
-
     for url in e.mimeData().urls():
         if url.isLocalFile():
             callback(url.toLocalFile())

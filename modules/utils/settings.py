@@ -129,29 +129,10 @@ class KnechtSettings:
     app = dict(
         version='0.0.0',
         current_path='',
-        render_path='',
-        create_preset_dirs=False,
-        convert_to_png=True,
         introduction_shown=False,
-        recent_files=list(),
-        app_style='Fusion',
+        app_style='fusion',
         font_size=20
         )
-    dg = dict(
-        freeze_viewer=True,
-        reset=True,
-        check_variants=True,
-        display_variant_check=False,
-        long_render_timeout=False,
-        viewer_size='1280 720',
-        viewer_background='#ffffff',
-        viewer_apply_bg=False,
-        )
-    fakom = dict(
-        last_pos_file='',
-        last_xlsx_file='',
-        )
-    excel = list()
 
     language = 'de'
 
@@ -170,23 +151,19 @@ class KnechtSettings:
         default_settings = dict()
         default_settings['app'] = dict()
         default_settings['app'].update(cls.app)
-        default_settings['dg'] = dict()
-        default_settings['dg'].update(cls.dg)
 
         Settings.load(KnechtSettings, file)
 
         # Update settings attributes with default settings if
         # eg. setting not available in previous versions
         for settings_key, settings_dict in default_settings.items():
-            if settings_key not in ['app', 'dg']:
+            if settings_key not in ['app']:
                 continue
 
             settings_attr = dict()
 
             if settings_key == 'app':
                 settings_attr = cls.app
-            elif settings_key == 'dg':
-                settings_attr = cls.dg
 
             for k, v in settings_dict.items():
                 if k not in settings_attr:
@@ -265,7 +242,7 @@ class KnechtSettings:
 
     @staticmethod
     def get_settings_path() -> str:
-        _knecht_settings_dir = get_settings_dir()
-        _knecht_settings_file = os.path.join(_knecht_settings_dir, SETTINGS_FILE)
+        _settings_dir = get_settings_dir()
+        _settings_file = os.path.join(_settings_dir, SETTINGS_FILE)
 
-        return _knecht_settings_file
+        return _settings_file
