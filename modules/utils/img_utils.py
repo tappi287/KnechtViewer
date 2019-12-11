@@ -97,6 +97,22 @@ class OpenImageUtil:
         return img
 
     @classmethod
+    def read_img_metadata(cls, img_file: Path) -> dict:
+        img_buf = ImageBuf(img_file.as_posix())
+        img_dict = dict()
+
+        if not img_buf:
+            LOGGER.error(oiio.geterror())
+            return img_dict
+
+        for param in img_buf.spec().extra_attribs:
+            img_dict[param.name] = param.value
+
+        cls.close_img_buf(img_buf, img_file)
+
+        return img_dict
+
+    @classmethod
     def write_image(cls, file: Path, pixels: np.array):
         output = ImageOutput.create(file.as_posix())
         if not output:
@@ -120,6 +136,17 @@ class OpenImageUtil:
             LOGGER.error('Could not open image file for writing: %s: %s', file.name, output.geterror())
 
         output.close()
+
+    @staticmethod
+    def close_img_buf(img_buf, img_file: Union[Path, None]=None):
+        try:
+            img_buf.clear()
+            del img_buf
+
+            if img_file:
+                oiio.ImageCache().invalidate(img_file.as_posix())
+        except Exception as e:
+            LOGGER.error('Error closing img buf: %s', e)
 
 
 def read_to_qpixmap(image_path: Path) -> Union[str, QPixmap]:

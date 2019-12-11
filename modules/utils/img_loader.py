@@ -1,8 +1,12 @@
 from pathlib import Path
+from threading import Thread
 
 from PySide2.QtCore import QObject, QThread, Signal, QTimer
 from PySide2.QtGui import QImage, QPixmap
 
+from modules.knecht_socket import Ncat
+from modules.utils.camera_info import ImageCameraInfo
+from modules.utils.globals import DG_TCP_IP, DG_TCP_PORT
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 from modules.utils.img_utils import read_to_qpixmap
@@ -19,6 +23,7 @@ _ = lang.gettext
 class KnechtLoadImage(QThread):
     loaded_img = Signal(object)
     load_failed = Signal(str)
+    found_camera_data = Signal(ImageCameraInfo)
 
     def __init__(self, parent, img_file):
         super(KnechtLoadImage, self).__init__()
@@ -31,6 +36,7 @@ class KnechtLoadImage(QThread):
 
             if isinstance(image, QPixmap):
                 self.loaded_img.emit(image)
+                self.search_camera_data()
                 return
             elif isinstance(image, str):
                 self.load_failed.emit(image)
@@ -40,8 +46,29 @@ class KnechtLoadImage(QThread):
         except Exception as e:
             self.load_failed.emit(str(e))
 
+    def search_camera_data(self):
+        # -- Load Camera Data if available
+        try:
+            cam_info_img = ImageCameraInfo(self.img_file)
+            cam_info_img.read_image()
+
+            if cam_info_img.is_valid():
+                self.found_camera_data.emit(cam_info_img)
+        except Exception as e:
+            LOGGER.warning(e, exc_info=1)
+
+
+def transmit_camera_data(cam_info: ImageCameraInfo):
+    try:
+        ncat = Ncat(DG_TCP_IP, DG_TCP_PORT)
+        if ncat.deltagen_is_alive():
+            ncat.send(cam_info.create_deltagen_camera_cmd())
+    except Exception as e:
+        LOGGER.warning(e, exc_info=1)
+
 
 class KnechtLoadImageController(QObject):
+    camera_available = Signal(bool)
     FILE_TYPES = ('.png', '.jpg', '.jpeg', '.tif', '.tga', '.hdr', '.exr', '.psd')
 
     def __init__(self, parent):
@@ -54,7 +81,7 @@ class KnechtLoadImageController(QObject):
         self.img_view = parent
 
         self.img_dir = Path('.')
-        self.current_img = None
+        self.current_cam = None
         self.img_list = list()
         self.img_index = 0
 
@@ -114,6 +141,8 @@ class KnechtLoadImageController(QObject):
         return idx
 
     def iterate_images(self):
+        self.reset_camera_data()
+
         if not self.img_list:
             self.img_view.no_image_found()
             return
@@ -145,11 +174,27 @@ class KnechtLoadImageController(QObject):
 
             self.img_loader.loaded_img.connect(self._image_loaded)
             self.img_loader.load_failed.connect(self._image_load_failed)
+            self.img_loader.found_camera_data.connect(self._camera_data_found)
 
             self.img_loader.finished.connect(self._img_loader_finished)
 
             self.img_loader.start()
             self.load_timeout.start()
+
+    def send_camera_data(self):
+        if self.current_cam is not None:
+            LOGGER.debug('Started transmitting camera data thread.')
+            cam_thread = Thread(target=transmit_camera_data, args=(self.current_cam, ))
+            cam_thread.start()
+
+    def reset_camera_data(self):
+        self.current_cam = None
+        self.camera_available.emit(False)
+
+    def _camera_data_found(self, cam_info: ImageCameraInfo):
+        self.current_cam = cam_info
+        LOGGER.debug('Found camera data in image: %s', cam_info.create_deltagen_camera_cmd())
+        self.camera_available.emit(True)
 
     def _img_loader_finished(self):
         LOGGER.debug('Image Load Thread finished.')

@@ -124,6 +124,7 @@ class ImageView(QWidget):
 
         # --- Image Loader ---
         self.img_load_controller = KnechtLoadImageController(self)
+        self.img_load_controller.camera_available.connect(self.camera_data_available)
 
         # --- Image canvas ---
         self.setLayout(QHBoxLayout())
@@ -146,6 +147,10 @@ class ImageView(QWidget):
 
         self.ui.zoom_box.currentIndexChanged.connect(self.combo_box_size)
         self.ui.zoom_box.setToolTip(_('Anzeigegröße der Bilddatei anpassen [Q/E]'))
+
+        self.ui.cam_btn: QPushButton
+        self.ui.cam_btn.setToolTip(_('Kamera Daten an DeltaGen senden.'))
+        self.ui.cam_btn.released.connect(self.img_load_controller.send_camera_data)
 
         self.ui.back_btn.pressed.connect(self.iterate_bck)
         self.ui.back_btn.setToolTip(_('Datei zurück navigieren [A oder <= Pfeiltaste]'))
@@ -411,6 +416,10 @@ class ImageView(QWidget):
         self.setWindowOpacity(opacity)
 
         self.shortcut_timeout.start()
+
+    # --- Camera ----
+    def camera_data_available(self, available: bool):
+        self.ui.cam_btn.setEnabled(available)
 
     # ------ VISIBILITY -------
     def toggle_img_canvas(self):
