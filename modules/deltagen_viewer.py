@@ -296,8 +296,6 @@ class SyncController(QObject):
         :param modules.img_view.ImageView viewer: Image viewer parent
         """
         super(SyncController, self).__init__(viewer)
-        global LOGGER
-        LOGGER = init_logging(__name__)
 
         self.viewer = viewer
         self.thread = None
