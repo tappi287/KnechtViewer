@@ -68,7 +68,7 @@ def transmit_camera_data(cam_info: ImageCameraInfo):
 
 
 class KnechtLoadImageController(QObject):
-    camera_available = Signal(bool)
+    camera_available = Signal(int)
     FILE_TYPES = ('.png', '.jpg', '.jpeg', '.tif', '.tga', '.hdr', '.exr', '.psd')
 
     def __init__(self, parent):
@@ -183,18 +183,26 @@ class KnechtLoadImageController(QObject):
 
     def send_camera_data(self):
         if self.current_cam is not None:
+            if not self.current_cam.validate_offsets():
+                self.img_view.info_overlay.display(self.current_cam.camera_warning, 8000)
+
             LOGGER.debug('Started transmitting camera data thread.')
             cam_thread = Thread(target=transmit_camera_data, args=(self.current_cam, ))
             cam_thread.start()
 
     def reset_camera_data(self):
         self.current_cam = None
-        self.camera_available.emit(False)
+        self.camera_available.emit(0)
 
     def _camera_data_found(self, cam_info: ImageCameraInfo):
         self.current_cam = cam_info
         LOGGER.debug('Found camera data in image: %s', cam_info.create_deltagen_camera_cmd())
-        self.camera_available.emit(True)
+
+        if cam_info.validate_offsets():
+            self.camera_available.emit(1)
+        else:
+            # Camera contains offsets
+            self.camera_available.emit(2)
 
     def _img_loader_finished(self):
         LOGGER.debug('Image Load Thread finished.')

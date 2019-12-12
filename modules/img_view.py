@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from PySide2.QtCore import QEvent, QPoint, QRect, QSize, QTimer, Qt
-from PySide2.QtGui import QKeySequence
+from PySide2.QtGui import QKeySequence, QPalette, QColor
 from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QShortcut, QSizePolicy, QWidget
 
 from modules.deltagen_viewer import SyncController
@@ -218,9 +218,19 @@ class ImageView(QWidget):
                 'Bildfläche immer im Vordergrund ein-/ausschalten'
                 '</li>'
                 '<li style="margin: 6px 0px;">'
+                '<img src=":/main/cursor.svg" width="24" height="24" '
+                'style="float: left;vertical-align: middle;" />'
+                'Bildfläche für Maus- und Tastatureingaben transparent machen'
+                '</li>'
+                '<li style="margin: 6px 0px;">'
                 '<img src=":/main/compare.svg" width="24" height="24" '
                 'style="float: left;vertical-align: middle;" />'
                 'F   - DeltaGen Viewer Position und Größe synchronisieren'
+                '</li>'
+                '<li style="margin: 6px 0px;">'
+                '<img src=":/main/videocam.png" width="24" height="24" '
+                'style="float: left;vertical-align: middle;" />'
+                'Kamera Daten aus Bildmetadaten an DeltaGen senden'
                 '</li>'
                 '</ul>'
                 'Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.'
@@ -418,8 +428,21 @@ class ImageView(QWidget):
         self.shortcut_timeout.start()
 
     # --- Camera ----
-    def camera_data_available(self, available: bool):
-        self.ui.cam_btn.setEnabled(available)
+    def camera_data_available(self, available: int):
+        pal = QPalette()
+        pal.setColor(QPalette.Button, QColor(240, 240, 240))
+
+        if available == 0:
+            self.ui.cam_btn.setEnabled(False)
+        elif available == 1:
+            self.ui.cam_btn.setEnabled(True)
+        elif available == 2:
+            pal.setColor(QPalette.Button, QColor(240, 150, 150))
+            self.ui.cam_btn.setEnabled(True)
+
+        self.ui.cam_btn.setAutoFillBackground(True)
+        self.ui.cam_btn.setPalette(pal)
+        self.ui.cam_btn.update()
 
     # ------ VISIBILITY -------
     def toggle_img_canvas(self):

@@ -138,14 +138,14 @@ class ImageCameraInfo:
         return False
 
     def validate_offsets(self):
-        valid, warn_msg = True, ''
+        valid, warn_msg = True, '<b>Camera Offsets can not be transmitted!<br /></b>'
 
         for tag, default_value in self.rtt_camera_defaults.items():
             cam_value = self.camera_info.get(tag)
 
             if cam_value is not None:
                 if cam_value != default_value:
-                    warn_msg += _('{}: {}<br />').format(tag, default_value)
+                    warn_msg += _('<i>{}:</i> <b>{}</b><br />').format(tag, cam_value)
                     valid = False
 
         if not valid:
