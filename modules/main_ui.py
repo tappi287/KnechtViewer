@@ -5,6 +5,7 @@ from PySide2.QtCore import QPoint, QTimer, Qt
 from PySide2.QtWidgets import QComboBox, QLineEdit, QSlider, QToolButton, QWidget
 
 from modules.img_view import ImageView
+from modules.utils.find_desktop_window import FindDesktopWindowInteractive
 from modules.utils.globals import APP_NAME, Resource
 from modules.utils.gui_utils import DragNDropHandler, SetupWidget, replace_widget
 from modules.utils.language import get_translation
@@ -76,6 +77,10 @@ class ViewerWindow(QWidget):
         # --- Drag n Drop ---
         drag_drop = DragNDropHandler(self)
         drag_drop.file_dropped.connect(self.file_changed)
+
+        # --- Sync Window Tracker ---
+        find_win = FindDesktopWindowInteractive(self.app, self)
+        find_win.start()
 
         # --- --- Setup Window Movement --- ---
         # Install viewer move and resize wrapper
