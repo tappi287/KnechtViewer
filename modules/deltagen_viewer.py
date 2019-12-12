@@ -57,6 +57,18 @@ class Win32WindowMgr:
         LOGGER.debug('%s, %s, %s', hwnd, win32gui.GetWindowText(hwnd), win32gui.GetWindowRect(hwnd))
         return 1
 
+    @staticmethod
+    def _read_dg_version(deltagen_window):
+        name = deltagen_window.window_text()
+        version = name[-5:]
+
+        if version == '2018x':
+            return 2018
+        elif version == '2017x':
+            return 2017
+        else:
+            return 12
+
     def find_deltagen_viewer_widget(self):
         """ Find the DeltaGen viewer window inside window controls """
         if not self.has_handle():
@@ -71,18 +83,27 @@ class Win32WindowMgr:
 
         try:
             dg_win = self._app.window(title_re='DELTAGEN *', depth=1, found_index=0)
-            workspace = dg_win.child_window(title='workspace', depth=1)
-            viewer_window = workspace.child_window(title='untitled', depth=1, class_name='QWidget', found_index=0)
-            viewer = None
+        except Exception as e:
+            LOGGER.error(e, exc_info=1)
+            return None
 
-            search_terms = ('pGLWidget',  # DeltaGen > 2017x
-                            ''            # DeltaGen 12.2
-                            )
+        dg_version = self._read_dg_version(dg_win)
+        viewer = None
 
-            for term in search_terms:
-                if viewer_window.child_window(title=term, depth=1, class_name='QWidget', found_index=0).exists():
-                    viewer = viewer_window.child_window(title=term, depth=1, class_name='QWidget', found_index=0)
-                    break
+        try:
+            if dg_version == 2018:
+                workspace = dg_win.child_window(title_re='workspace*', depth=1)
+                viewer = workspace.child_window(title='pGLWidgetWindow', depth=2, found_index=0)
+            else:
+                workspace = dg_win.child_window(title='workspace', depth=1)
+                viewer_window = workspace.child_window(title='untitled', depth=1, class_name='QWidget', found_index=0)
+                search_terms = ('pGLWidget',  # DeltaGen > 2017x
+                                ''  # DeltaGen 12.2
+                                )
+                for term in search_terms:
+                    if viewer_window.child_window(title=term, depth=1, class_name='QWidget', found_index=0).exists():
+                        viewer = viewer_window.child_window(title=term, depth=1, class_name='QWidget', found_index=0)
+                        break
 
             if not viewer:
                 return
@@ -133,13 +154,14 @@ class DgSyncThread(Thread):
         self.exit_event = Event()
 
         self.dg_btn_timeout = QTimer()
-        self.dg_btn_timeout.setInterval(800)
+        self.dg_btn_timeout.setInterval(4000)
         self.dg_btn_timeout.setSingleShot(True)
         self.dg_btn_timeout.timeout.connect(self.dg_reset_btn)
 
         self.sync_dg = False
         self.pull_viewer_foreground = False
         self.initial_sync_started = True
+        self.initial_viewer_size = str()
         self.last_known_win32_wrapper = None
 
         self.ncat = Ncat(DG_TCP_IP, DG_TCP_PORT)
@@ -236,27 +258,29 @@ class DgSyncThread(Thread):
             return False
 
         # - Convert to QRect and QPoint
-        x, y = r.left, r.top
-        w, h = r.right - r.left, r.bottom - r.top
+        x, y, w, h = r.left, r.top, r.width(), r.height()
+
+        if self.initial_sync_started:
+            # Save initial viewer size before syncing
+            self.initial_viewer_size = f'{w} {h}'
 
         if x + y + w + h < 1:
             # Empty values indicate a destroyed window
             return False
 
         viewer_rect = QRect(x, y, w, h)
-        pos = viewer_rect.topLeft()
 
         # - Check if is inside screen limits
         # (minimizing the window will move it's position to eg. -33330)
-        if self.viewer.is_inside_limit(self.viewer.calculate_screen_limits(), pos):
+        if self.viewer.is_inside_limit(self.viewer.calculate_screen_limits(), viewer_rect.topLeft()):
             LOGGER.debug('DeltaGen Viewer found at %s %s %s %s', x, y, w, h)
-            self.signals.position_img_viewer_signal.emit(pos)
+            self.signals.position_img_viewer_signal.emit(viewer_rect.topLeft())
 
         return True
 
     def dg_reset_viewer(self):
         try:
-            self.ncat.send('BORDERLESS VIEWER FALSE;')
+            self.ncat.send(f'BORDERLESS VIEWER FALSE;SIZE VIEWER {self.initial_viewer_size}')
         except Exception as e:
             LOGGER.error('Sending viewer size command failed. %s', e)
 

@@ -10,7 +10,7 @@ from modules.utils.log import init_logging, setup_log_queue_listener
 from modules.utils.settings import KnechtSettings, delayed_log_setup
 from ui import viewer_resource
 
-VERSION = '1.2'
+VERSION = '1.3'
 LOGGER = init_logging(MAIN_LOGGER_NAME)
 
 

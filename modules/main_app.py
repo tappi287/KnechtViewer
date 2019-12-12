@@ -11,9 +11,9 @@ LOGGER = init_logging(__name__)
 class ViewerApp(QApplication):
     def __init__(self, version: str):
         super(ViewerApp, self).__init__(sys.argv)
-        self.setApplicationName(APP_NAME)
+        self.setApplicationName(f'{APP_NAME}')
         self.setApplicationVersion(version)
-        self.setApplicationDisplayName(self.applicationName())
+        self.setApplicationDisplayName(f'{APP_NAME} v{version}')
 
         self.window = ViewerWindow(self)
         self.window.show()
