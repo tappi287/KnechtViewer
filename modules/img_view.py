@@ -148,7 +148,6 @@ class ImageView(QWidget):
         self.ui.zoom_box.currentIndexChanged.connect(self.combo_box_size)
         self.ui.zoom_box.setToolTip(_('Anzeigegröße der Bilddatei anpassen [Q/E]'))
 
-        self.ui.cam_btn: QPushButton
         self.ui.cam_btn.setToolTip(_('Kamera Daten an DeltaGen senden.'))
         self.ui.cam_btn.released.connect(self.img_load_controller.send_camera_data)
 
@@ -226,6 +225,11 @@ class ImageView(QWidget):
                 '<img src=":/main/compare.svg" width="24" height="24" '
                 'style="float: left;vertical-align: middle;" />'
                 'F   - DeltaGen Viewer Position und Größe synchronisieren'
+                '</li>'
+                '<li style="margin: 6px 0px;">'
+                '<img src=":/main/locate.svg" width="24" height="24" '
+                'style="float: left;vertical-align: middle;" />'
+                'Bildfläche auf das gewählte Desktop Fenster verschieben'
                 '</li>'
                 '<li style="margin: 6px 0px;">'
                 '<img src=":/main/videocam.png" width="24" height="24" '

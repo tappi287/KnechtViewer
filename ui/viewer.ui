@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>552</width>
+    <width>580</width>
     <height>64</height>
    </rect>
   </property>
@@ -177,6 +177,17 @@
        </property>
        <property name="checkable">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="locate_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="res/viewer_resource.qrc">
+         <normaloff>:/main/locate.svg</normaloff>:/main/locate.svg</iconset>
        </property>
       </widget>
      </item>

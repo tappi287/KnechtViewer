@@ -1,11 +1,12 @@
 import sys
 from typing import Union
 
-from PySide2.QtCore import QObject, QEvent, QPoint, QTimer, Qt
-from PySide2.QtGui import QMouseEvent, QCursor, QPainter, QPen, QPaintEvent
-from PySide2.QtWidgets import QApplication, QWidget
+from PySide2.QtCore import QObject, QEvent, QTimer, Qt, QRect, Signal, QMargins, QPoint
+from PySide2.QtGui import QCursor, QPainter, QPen, QPaintEvent, QColor
+from PySide2.QtWidgets import QWidget, QDesktopWidget, QApplication
 
 # https://github.com/pywinauto/pywinauto/issues/472
+
 sys.coinit_flags = 2  # Fix all kinds of Qt Conflicts after importing pywinauto
 from pywinauto import Desktop
 from pywinauto.base_wrapper import BaseWrapper
@@ -21,48 +22,106 @@ _ = lang.gettext
 
 
 class FindDesktopWindowInteractive(QObject):
-    tracking_rate = 2000
+    tracking_rate = 500
+    painting_rate = 15
 
-    def __init__(self, app: QApplication, widget: QWidget):
-        super(FindDesktopWindowInteractive, self).__init__(app)
+    result = Signal(QRect)
+
+    def __init__(self, app: QApplication, origin_draw_position: QPoint):
+        """
+        Locate a desktop window rectangle with the mouse cursor
+
+        :param QApplication app: App to install event filter on
+        :param QPoint origin_draw_position: Position of the line, indicating the tracked cursor, is drawn from
+        """
+        super(FindDesktopWindowInteractive, self).__init__()
         self.app = app
-        self.widget = widget
 
-        self.cursor = QCursor()
         self.tracking_timer = QTimer()
         self.tracking_timer.setInterval(self.tracking_rate)
         self.tracking_timer.timeout.connect(self._track_cursor)
 
-        self.pywin_desktop = Desktop()
-        self.qt_desktop = app.desktop()
+        self.paint_timer = QTimer()
+        self.paint_timer.setInterval(self.painting_rate)
+        self.paint_timer.timeout.connect(self.paint)
 
-        self.org_paint_event = self.widget.paintEvent
-        self.widget.paintEvent = self.paint_event
-        LOGGER.debug('Desktop: %s', self.qt_desktop.screenGeometry().center())
+        self.cursor = QCursor()
+        self.pywin_desktop = Desktop()
+
+        self.highlight_rect = QRect()
+
+        self.origin_draw_pos = origin_draw_position
+
+        # -- Transparent widget across the desktop to draw on --
+        self.desk_draw_widget = DesktopDrawWidget(app.desktop())
+        self.desk_draw_widget.paintEvent = self.paint_event
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        """ Install on QApplication to grab result as soon as we loose focus
+            aka mousePress outside of any of our widgets.
+
+            Cancel if any unbound keys are pressed. Shortcut keys will be ignored.
+        """
+        if event.type() == QEvent.FocusOut:
+            self.stop()
+            return True
+        elif event.type() == QEvent.KeyPress:
+            self.abort()
+            return True
+        return False
+
+    def paint(self):
+        """ Trigger a desktop overlay widget paint event """
+        self.desk_draw_widget.update()
 
     def paint_event(self, event: QPaintEvent):
-        LOGGER.debug('Updating: %s', event.rect())
+        pen = QPen(QColor(250, 120, 20))
+        w = 4
+        m = round(w/2)
+        pen.setWidth(w)
+        pen.setJoinStyle(Qt.RoundJoin)
+
+        inner_rect = self.highlight_rect.marginsRemoved(QMargins(m, m, m, m))
+
         p = QPainter()
-        p.begin(self.widget)
-        p.setPen(QPen(Qt.red, 4))
-        p.drawLine(self.qt_desktop.screenGeometry().center(), self.cursor.pos())
+        p.begin(self.desk_draw_widget)
+        p.setPen(pen)
+        p.drawLine(self.origin_draw_pos, self.cursor.pos())
+        p.drawRect(inner_rect)
         p.end()
 
     def start(self):
+        self.desk_draw_widget.show()
+        self.app.installEventFilter(self)
+
         self.tracking_timer.start()
+        self.paint_timer.start()
+
+    def stop(self):
+        LOGGER.debug('Selected Area: %s', self.highlight_rect)
+        self.result.emit(self.highlight_rect)
+        self.finish()
+
+    def abort(self):
+        self.finish()
+
+    def finish(self):
+        self.app.removeEventFilter(self)
+
+        self.tracking_timer.stop()
+        self.paint_timer.stop()
+
+        self.desk_draw_widget.close()
+        self.desk_draw_widget.deleteLater()
+        self.deleteLater()
 
     def _track_cursor(self):
         wrapper = self._find_window_by_point(self.cursor.pos().x(), self.cursor.pos().y())
-        self._highlight_outline(wrapper)
+        if not wrapper:
+            return
 
-        if wrapper:
-            LOGGER.debug('Cursor at: %s - %s', wrapper.top_level_parent().window_text(), wrapper.window_text())
-        else:
-            LOGGER.debug('Cursor location: %s %s', self.cursor.pos().x(), self.cursor.pos().y())
-
-    @staticmethod
-    def _highlight_outline(wrapper):
-        wrapper.draw_outline(colour='red', thickness=2, rect=wrapper.rectangle())
+        r = wrapper.rectangle()
+        self.highlight_rect = QRect(r.left, r.top, r.width(), r.height())
 
     def _find_window_by_point(self, x: int, y: int) -> Union[BaseWrapper, None]:
         try:
@@ -70,3 +129,19 @@ class FindDesktopWindowInteractive(QObject):
         except Exception as e:
             LOGGER.debug(e, exc_info=1)
             return None
+
+    @staticmethod
+    def _highlight_outline(wrapper):
+        """ Alternative highlight method from pywinauto """
+        wrapper.draw_outline(colour='red', thickness=2, rect=wrapper.rectangle())
+
+
+class DesktopDrawWidget(QWidget):
+    def __init__(self, desktop: QDesktopWidget):
+        """ Transparent non interact-able Desktop Overlay to draw on """
+        super(DesktopDrawWidget, self).__init__()
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint |
+                            Qt.Tool | Qt.WindowTransparentForInput)
+
+        self.setGeometry(desktop.screenGeometry())
