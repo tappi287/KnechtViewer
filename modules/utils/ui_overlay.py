@@ -3,12 +3,11 @@ from typing import Tuple
 
 from PySide2 import QtWidgets
 from PySide2.QtCore import QPropertyAnimation, QTimer, Qt, QAbstractAnimation
-from PySide2.QtGui import QEnterEvent, QMouseEvent, QMovie, QRegion
+from PySide2.QtGui import QEnterEvent, QMouseEvent, QRegion
 
-from modules.utils.globals import Resource
 from modules.utils.animation import BgrAnimation
+from modules.utils.globals import Resource
 from modules.utils.gui_utils import SetupWidget
-from modules.utils.ui_resource import FontRsc
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 
@@ -22,7 +21,7 @@ _ = lang.gettext
 
 class InfoOverlay(QtWidgets.QWidget):
     # Positioning
-    y_offset_factor = 0.20
+    y_offset_factor = 0.10
     x_offset_factor = 0.15
 
     # Default opacity

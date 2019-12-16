@@ -58,15 +58,6 @@ class KnechtLoadImage(QThread):
             LOGGER.warning(e, exc_info=1)
 
 
-def transmit_camera_data(cam_info: ImageCameraInfo):
-    try:
-        ncat = Ncat(DG_TCP_IP, DG_TCP_PORT)
-        if ncat.deltagen_is_alive():
-            ncat.send(cam_info.create_deltagen_camera_cmd())
-    except Exception as e:
-        LOGGER.warning(e, exc_info=1)
-
-
 class KnechtLoadImageController(QObject):
     camera_available = Signal(int)
     FILE_TYPES = ('.png', '.jpg', '.jpeg', '.tif', '.tga', '.hdr', '.exr', '.psd')
@@ -181,15 +172,6 @@ class KnechtLoadImageController(QObject):
             self.img_loader.start()
             self.load_timeout.start()
 
-    def send_camera_data(self):
-        if self.current_cam is not None:
-            if not self.current_cam.validate_offsets():
-                self.img_view.info_overlay.display(self.current_cam.camera_warning, 8000)
-
-            LOGGER.debug('Started transmitting camera data thread.')
-            cam_thread = Thread(target=transmit_camera_data, args=(self.current_cam, ))
-            cam_thread.start()
-
     def reset_camera_data(self):
         self.current_cam = None
         self.camera_available.emit(0)
@@ -210,6 +192,7 @@ class KnechtLoadImageController(QObject):
         self.img_loader = None
 
     def _image_loaded(self, image: QPixmap):
+        KnechtSettings.add_recent_file(self.img_list[self.img_index], self.img_list[self.img_index].suffix)
         self.load_timeout.stop()
         self.img_view.image_loaded(image)
 

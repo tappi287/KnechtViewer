@@ -7,13 +7,13 @@ from PySide2.QtWidgets import QComboBox, QLineEdit, QSlider, QToolButton, QWidge
 from modules.img_view import ImageView
 from modules.utils.find_desktop_window import FindDesktopWindowInteractive
 from modules.utils.globals import APP_NAME, Resource
-from modules.utils.gui_utils import DragNDropHandler, SetupWidget, replace_widget
+from modules.utils.gui_utils import DragNDropHandler, SetupWidget, replace_widget, ButtonClickKeyModifierHandler
 from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 from modules.utils.path_util import SetDirectoryPath, path_exists
 from modules.utils.settings import KnechtSettings
 from modules.utils.ui_resource import IconRsc
-from modules.widgets import ViewerSizeBox
+from modules.widgets import ViewerSizeBox, FileMenu
 
 LOGGER = init_logging(__name__)
 
@@ -60,20 +60,31 @@ class ViewerWindow(QWidget):
         # --- Image View ---
         self.img_view = ImageView(app, self)
 
+        # --- File Menu ---
+        self.file_menu = FileMenu(self)
+
+        self.file_btn: QPushButton
+        self.file_btn.setMenu(self.file_menu)
+
         # --- Setup Path LineEdit and ToolButton ---
-        self.path_edit: QLineEdit
-        self.path_btn: QToolButton
         self.path_edit.setPlaceholderText(_('Dateien oder Ordner in das Fenster ziehen oder hier Pfad einfügen.'))
         self.path_edit.setFocusPolicy(Qt.ClickFocus)
         self.path_btn.setFocusPolicy(Qt.ClickFocus)
+        self.path_btn.hide()
         self.path_util = SetDirectoryPath(self, 'file', self.path_edit, self.path_btn, reject_invalid_path_edits=False)
 
-        # --- Setup locate button ---
+        # --- Setup ui specific buttons ---
         self.locate_btn: QPushButton
+        btn_handler = ButtonClickKeyModifierHandler(self.locate_btn)
+        btn_handler.shift_trigger.connect(self._start_locate_window)
+        self.locate_btn.key_modifier = 0  # Will store the KeyboardModifier
         # Disable locate btn while syncing
         self.sync_btn.toggled.connect(self.locate_btn.setDisabled)
-        self.locate_btn.setToolTip(_('Desktop Fenster auswählen und Bildfläche dorthin verschieben'))
-        self.locate_btn.released.connect(self._start_locate_window)
+        self.locate_btn.setToolTip(_('Desktop Fenster auswählen und Bildfläche dorthin verschieben; Strg/Shift+Klick '
+                                     'ignoriert Seitenverhältnis'))
+
+        self.cam_btn.setToolTip(_('Kamera Daten an DeltaGen senden.'))
+        self.cam_btn.pressed.connect(self._send_camera_data)
 
         self.load_settings()
 
@@ -119,17 +130,46 @@ class ViewerWindow(QWidget):
         if KnechtSettings.app.get('img_input_transparent') is True:
             self.input_btn.setChecked(not self.img_view.switch_input_transparency())
 
-    def _start_locate_window(self):
+    def _start_locate_window(self, btn_key_modifier: int):
         """ Move Image Viewer to the desktop window selected by the user """
+        self.locate_btn.key_modifier = 0
+        self.locate_btn.key_modifier = btn_key_modifier
+
         self.img_view.info_overlay.display(_('Desktop Fenster mit Mausklick auswählen. '
-                                             'Beliebige Taste drücken zum abbrechen.'), 5000)
+                                             'Beliebige Taste drücken zum abbrechen.'), 5000, immediate=True)
         find_win = FindDesktopWindowInteractive(self.app, self.locate_btn.mapToGlobal(self.locate_btn.rect().center()))
         find_win.start()
         find_win.result.connect(self._locate_win_result)
 
     def _locate_win_result(self, target_rect: QRect):
+        if target_rect.width() < 2 or target_rect.height() < 2:
+            return
+        # Trigger a resize to regular size if previous size was fitted to a window
+        self.img_view.change_viewer_size()
+
+        if self.locate_btn.key_modifier == 0 and self.img_view.height() > 0:
+            # No Key Modifier tries to keep aspect ratio
+            height_factor: float = self.img_view.height() / self.img_view.width()
+            height: int = round(target_rect.width() * height_factor)
+            target_rect.setHeight(height)
+            LOGGER.debug('Trying to keep aspect ratio at %s height factor. %s %s',
+                         height_factor, target_rect.width(), height)
+        elif self.locate_btn.key_modifier == Qt.ControlModifier:
+            # Ctrl Key only moves window
+            self.img_view.move(target_rect.topLeft())
+            return
+        elif self.locate_btn.key_modifier == Qt.ShiftModifier:
+            # Shift/Any Key Modifier fits to window without respecting aspect ratio of image
+            pass
+
         self.img_view.resize(target_rect.size())
         self.img_view.move(target_rect.topLeft())
+
+    def _send_camera_data(self):
+        cam = self.img_view.img_load_controller.current_cam
+
+        if cam:
+            self.img_view.dg_thread.send_camera_data(cam)
 
     def _path_dialog_opened(self):
         """ Toggle Image Canvas Stay On Top while Path Dialog opened """

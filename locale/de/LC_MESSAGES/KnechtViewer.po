@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2019-10-16 09:58+0200\n"
+"POT-Creation-Date: 2019-12-16 13:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,39 +15,139 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: modules\img_view.py:148
-msgid "Bildfläche immer im Vordergrund"
+#: modules\deltagen_viewer.py:189
+msgid "Synchronisation beendet. Keine Verbindung zum DeltaGen Host oder kein ViewerFenster gefunden."
 msgstr ""
 
-#: modules\img_view.py:155
-msgid "Sync DeltaGen Viewer"
+#: modules\deltagen_viewer.py:307
+msgid "Synchronisierung startet. Suche Anwendungsfenster..."
 msgstr ""
 
-#: modules\img_view.py:158
-msgid "Pull DeltaGen Focus"
+#: modules\img_view.py:24
+msgid ""
+"\n"
+"<h3>KnechtViewer</h3>\n"
+"<ul>\n"
+"<li>Q/E - Bildfläche vergrößern/verkleinern</li>\n"
+"<li>A/D - Nächste/Vorherige Bilddatei</li>\n"
+"<li>W/S - Transparenz der Bildfläche erhöhen/verringern</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/eye.png\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />\n"
+"Tab - Bildfläche ein-/ausblenden</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/collections.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />\n"
+"Bildfläche immer im Vordergrund ein-/ausschalten\n"
+"</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/cursor.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />\n"
+"Bildfläche für Maus- und Tastatureingaben transparent machen\n"
+"</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/compare.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />\n"
+"F   - DeltaGen Viewer Position und Größe synchronisieren\n"
+"</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/locate.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />\n"
+"Bildfläche auf das gewählte Desktop Fenster verschieben, Shift+ButtonClick ignoriert Seitenverhältnis, Strg+ButtonClick \n"
+"passt nur die Position an\n"
+"</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/videocam.png\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />\n"
+"C - DeltaGen Kamera Daten aus Bildmetadaten an DeltaGen senden\n"
+"</li>\n"
+"</ul>\n"
+"Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.\n"
+"<br><br>\n"
+"Unterstütze Formate: {}\n"
+msgstr ""
+
+#: modules\img_view.py:189
+msgid "Transparenz der Bildfläche festlegen [W/S]"
 msgstr ""
 
 #: modules\img_view.py:194
-msgid "<h3>KnechtViewer Tastaturkürzel</h3><ul><li>Q/E - Bildfläche vergrößern/verkleinern</li><li>A/D - Nächste/Vorherige Bilddatei</li><li>W/S - Transparenz der Bildfläche erhöhen/verringern</li><li>Tab - Bildfläche ein-/ausblenden</li><li style=\"margin: 4px 0px;\"><img src=\":/main/collections.svg\" width=\"24\" height=\"24\" style=\"float: left;vertical-align: middle;\"/>Bildfläche immer im Vordergrund ein-/ausschalten</li><li>F   - DeltaGen Viewer Position und Größe synchronisieren</li><li style=\"margin: 4px 0px;\"><img src=\":/main/open.svg\" width=\"24\" height=\"24\" style=\"float: left;vertical-align: middle;\" />DeltaGen Viewer Fenster periodisch in den Vordergrund holen. <b>ACHTUNG</b>: Tastatureingaben werden an das fokusierte DeltaGen Fenster gesendet werden!</li></ul>Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.<br><br>Unterstütze Formate: {}"
+msgid "Anzeigegröße der Bilddatei anpassen [Q/E]"
 msgstr ""
 
-#: modules\img_view.py:276
+#: modules\img_view.py:196
+msgid "Kamera Daten an DeltaGen senden."
+msgstr ""
+
+#: modules\img_view.py:200
+msgid "Datei zurück navigieren [A oder <= Pfeiltaste]"
+msgstr ""
+
+#: modules\img_view.py:202
+msgid "Datei vorwärts navigieren [D oder => Pfeiltaste]"
+msgstr ""
+
+#: modules\img_view.py:203
+msgid "Bildfläche immer im Vordergrund"
+msgstr ""
+
+#: modules\img_view.py:205
+msgid "Sichtbarkeit der Bildfläche an/aus [Tab]"
+msgstr ""
+
+#: modules\img_view.py:207
+msgid "Maus und Tastatureingabe für Bildfläche de-/aktivieren"
+msgstr ""
+
+#: modules\img_view.py:211
+msgid "Sync DeltaGen Viewer"
+msgstr ""
+
+#: modules\img_view.py:212
+msgid "Bildfläche periodisch zum DeltaGen Viewer verschieben [F]"
+msgstr ""
+
+#: modules\img_view.py:214
+msgid "Hilfe anzeigen"
+msgstr ""
+
+#: modules\img_view.py:216
+msgid "Pull DeltaGen Focus"
+msgstr ""
+
+#: modules\img_view.py:322
 msgid "Keine Bilddaten im Verzeichnis gefunden."
 msgstr ""
 
-#: modules\img_view.py:289
+#: modules\img_view.py:337
 msgid "Konnte keine Bilddaten laden: {}<br>{}"
 msgstr ""
 
-#: modules\img_view.py:417
-msgid "Bildfläche erscheint nun immer im Vordergrund"
-msgstr ""
-
-#: modules\img_view.py:419
+#: modules\img_view.py:492
 msgid "Bildfläche erscheint nun nicht mehr im Vordergrund"
 msgstr ""
 
-#: modules\main_ui.py:49
+#: modules\img_view.py:493
+msgid "Bildfläche erscheint nun immer im Vordergrund"
+msgstr ""
+
+#: modules\img_view.py:508
+msgid "Maus und Tastatureingabe für Bildfläche aktiviert."
+msgstr ""
+
+#: modules\img_view.py:509
+msgid "Maus und Tastatureingabe für Bildfläche deaktiviert."
+msgstr ""
+
+#: modules\main_ui.py:66
 msgid "Dateien oder Ordner in das Fenster ziehen oder hier Pfad einfügen."
+msgstr ""
+
+#: modules\main_ui.py:78
+msgid "Desktop Fenster auswählen und Bildfläche dorthin verschieben; Strg/Shift+Klick ignoriert Seitenverhältnis"
+msgstr ""
+
+#: modules\main_ui.py:130
+msgid "Desktop Fenster mit Mausklick auswählen. Beliebige Taste drücken zum abbrechen."
 msgstr ""
 

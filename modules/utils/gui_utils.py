@@ -7,13 +7,39 @@ from typing import Union
 import numpy as np
 from PySide2.QtCore import QEvent, QFile, QObject, QRect, QTimer, Qt, Signal, Slot
 from PySide2.QtGui import QDragEnterEvent, QDragMoveEvent, QDropEvent, QMouseEvent, Qt
-from PySide2.QtWidgets import QTreeView, QWidget
+from PySide2.QtWidgets import QTreeView, QWidget, QApplication, QPushButton
 
 from modules.utils.globals import UI_PATH, get_current_modules_dir, get_settings_dir
 from modules.utils.log import init_logging
 from modules.utils.ui_loader import loadUi
 
 LOGGER = init_logging(__name__)
+
+
+def time_string(time_f: float) -> str:
+    """ Converts time in float seconds to display format
+
+        Returned formats based on detected size (hours > minutes > seconds > milliseconds)
+
+        * 01h:01min:01sec
+        * 01min:01sec
+        * 01sec
+        * 001msec
+    """
+    m, s = divmod(time_f, 60)
+    h, m = divmod(m, 60)
+
+    if h < 1:
+        if m < 1 and s < 1:
+            msec = int(s * 1000)
+            return '{:=03d}msec'.format(msec)
+
+        if m < 1:
+            return '{:=02.0f}sec'.format(s)
+
+        return '{:=02.0f}min:{:=02.0f}sec'.format(m, s)
+    else:
+        return '{:=01.0f}h:{:=02.0f}min:{:=02.0f}sec'.format(h, m, s)
 
 
 class MeasureExecTime:
@@ -113,6 +139,113 @@ class ConnectCall(QObject):
     @Slot()
     def call(self):
         self.target(*self.args)
+
+
+class ButtonClickKeyModifierHandler(QObject):
+    shift_trigger = Signal(int)
+
+    def __init__(self, button: QPushButton):
+        """
+            Handle button click with keyboard modifier. Connect shift_trigger Signal and expect a
+            Qt.KeyboardModifier
+        """
+        super(ButtonClickKeyModifierHandler, self).__init__(button)
+        self.button = button
+        self.button.pressed.connect(self.handle_button_click)
+
+    def handle_button_click(self):
+        modifier = QApplication.keyboardModifiers()
+        self.shift_trigger.emit(modifier)
+
+
+class ShowProgressBasedOnTime(QObject):
+    update_signal = Signal(int)
+
+    def __init__(self, target, duration=5000):
+        super(ShowProgressBasedOnTime, self).__init__()
+        self.target = target
+        self.duration = duration
+        self.start_time = time()
+
+        self.update_timer = QTimer()
+        self.update_timer.timeout.connect(self.update)
+
+        self.update_signal.connect(self.target)
+
+    def start(self, duration):
+        self.update_timer.setInterval(round(duration / 50 * 1000))
+        self.update_timer.start()
+        self.duration = duration
+        self.start_time = time()
+
+    def stop(self):
+        self.update_timer.stop()
+
+    def update(self):
+        elapsed_time = time() - self.start_time
+        progress = round(elapsed_time * 100 / max(1, self.duration))
+        self.update_signal.emit(progress)
+        LOGGER.debug('Progress update %s', progress)
+
+        if elapsed_time > float(self.duration):
+            self.update_timer.stop()
+
+
+class ButtonProgress(QObject):
+    def __init__(self, button: QPushButton):
+        super(ButtonProgress, self).__init__(button)
+        self.button = button
+        self.progress = 0
+
+        self.time_progress = ShowProgressBasedOnTime(self.update_progress)
+
+        self.reset()
+
+    def start(self):
+        self.update_button()
+
+    def start_timed_progress(self, duration: int):
+        self.time_progress.start(duration)
+
+    def reset(self):
+        self.button.setStyleSheet("""
+            QPushButton {background-color: rgb(227, 227, 227); border: 1px solid black;padding: 4px 3px;}
+            QPushButton:checked {background-color: rgb(115, 206, 224);}
+            QPushButton:hover {border-color: rgb(115, 206, 224);background-color: rgb(226, 235, 236);}
+                                  """)
+
+    def stop(self):
+        self.time_progress.stop()
+
+        value = 1.0
+        s = f"QPushButton " \
+            f"{{padding: 4px 3px; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, " \
+            f"stop:0 rgba(230, 103, 192, 255), stop:{value-0.001} rgba(230, 103, 192, 255), " \
+            f"stop:{value} rgb(227, 227, 227), stop:1 rgb(227, 227, 227));" \
+            f"border: rgba(0, 0, 0, 255) 1px solid;}}"
+        self.progress = 0
+        LOGGER.debug('Stopped progress button')
+
+    def update_progress(self, progress: int):
+        self.progress = min(100, max(0, progress))
+
+        if self.progress <= 0:
+            self.stop()
+            self.reset()
+        elif self.progress >= 100:
+            self.stop()
+        else:
+            self.update_button()
+
+    def update_button(self):
+        value = max(0.01, float(self.progress)) / 100
+
+        s = f"QPushButton " \
+            f"{{padding: 4px 3px; background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, " \
+            f"stop:0 rgba(230, 103, 192, 255), stop:{value-0.001} rgba(230, 103, 192, 255), " \
+            f"stop:{value} rgba(79, 179, 228, 255), stop:1 rgba(79, 179, 228, 255));" \
+            f"border: rgba(0, 0, 0, 255) 1px solid;}}"
+        self.button.setStyleSheet(s)
 
 
 class PredictProgressTime(QObject):

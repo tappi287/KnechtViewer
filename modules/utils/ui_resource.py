@@ -83,7 +83,7 @@ class FontRsc:
     regular_pixel_size = 18
     big_pixel_size = 20
 
-    default_font_key = 'Segoe UI'  # 'SourceSansPro-Regular'  # 'Segoe UI'
+    default_font_key = 'MS Shell Dlg 2'  # 'SourceSansPro-Regular'  # 'Segoe UI'
 
     @classmethod
     def init(cls, size: int=0):

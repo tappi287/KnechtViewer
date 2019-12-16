@@ -3,6 +3,8 @@ import sys
 from threading import Event, Thread
 
 # https://github.com/pywinauto/pywinauto/issues/472
+from modules.utils.camera_info import ImageCameraInfo
+
 sys.coinit_flags = 2  # Fix all kinds of Qt Conflicts after importing pywinauto
 
 import win32gui
@@ -12,7 +14,7 @@ from PySide2.QtCore import QObject, QTimer, Signal, Slot, QRect, QPoint
 from modules.utils.language import get_translation
 from modules.knecht_socket import Ncat
 from modules.utils.globals import DG_TCP_IP, DG_TCP_PORT
-from modules.utils.gui_utils import MeasureExecTime
+from modules.utils.gui_utils import MeasureExecTime, ButtonProgress
 from modules.utils.log import init_logging
 
 LOGGER = init_logging(__name__)
@@ -135,6 +137,7 @@ class DgSyncThreadSignals(QObject):
     position_img_viewer_signal = Signal(QPoint)
 
     message_signal = Signal(str)
+    progress_signal = Signal(int)
 
 
 class DgSyncThread(Thread):
@@ -172,6 +175,7 @@ class DgSyncThread(Thread):
         self.set_btn_checked_signal = self.signals.set_btn_checked_signal
         self.set_btn_checked_signal.connect(self.viewer.dg_check_btn)
         self.message = self.signals.message_signal
+        self.progress = self.signals.progress_signal
 
         self.signals.position_img_viewer_signal.connect(self.viewer.move)
 
@@ -202,6 +206,7 @@ class DgSyncThread(Thread):
     def sync_img_viewer(self) -> bool:
         """ Resize DG Viewer widget and move img viewer to DG Viewer widget position """
         if self.initial_sync_started:
+            self.progress.emit(8)
             if not self.ncat.deltagen_is_alive():
                 LOGGER.info('No socket connected to DeltaGen or no Viewer window active/in focus.')
                 return False
@@ -292,6 +297,12 @@ class DgSyncThread(Thread):
             self.win_mgr.clear_handle()
             self.ncat.close()
 
+    def dg_set_camera(self, cam_info: ImageCameraInfo):
+        try:
+            self.ncat.send(cam_info.create_deltagen_camera_cmd())
+        except Exception as e:
+            LOGGER.warning('Could not trasmit camera data to DeltaGen: %s', e)
+
     @Slot()
     def dg_toggle_sync(self):
         self.sync_dg = not self.sync_dg
@@ -306,6 +317,7 @@ class DgSyncThread(Thread):
             self.initial_sync_started = True
             self.message.emit(_('Synchronisierung startet. Suche Anwendungsfenster...'))
         else:
+            self.progress.emit(0)
             self.dg_reset_viewer()
 
     def find_dg_window(self):
@@ -343,6 +355,7 @@ class DgSyncThread(Thread):
 class SyncController(QObject):
     toggle_sync_signal = Signal()
     toggle_pull_signal = Signal(bool)
+    transmit_camera_data_signal = Signal(ImageCameraInfo)
 
     find_window_result = Signal(object)
 
@@ -355,13 +368,20 @@ class SyncController(QObject):
 
         self.viewer = viewer
         self.thread = None
+
+        self.progress_btn = ButtonProgress(self.viewer.ui.sync_btn)
         self._setup_thread()
 
     def _setup_thread(self):
         self.thread = DgSyncThread(self.viewer)
         self.thread.message.connect(self.display_sync_message)
+        self.thread.progress.connect(self.update_progress)
         self.toggle_sync_signal.connect(self.thread.dg_toggle_sync)
         self.toggle_pull_signal.connect(self.thread.viewer_toggle_pull)
+        self.transmit_camera_data_signal.connect(self.thread.dg_set_camera)
+
+    def update_progress(self, duration: int):
+        self.progress_btn.start_timed_progress(duration)
 
     def toggle_sync(self):
         if not self.viewer.ui.top_btn.isChecked():
@@ -376,6 +396,9 @@ class SyncController(QObject):
 
     def display_sync_message(self, msg):
         self.viewer.info_overlay.display(msg, duration=5000, immediate=True)
+
+    def send_camera_data(self, camera: ImageCameraInfo):
+        self.transmit_camera_data_signal.emit(camera)
 
     def start(self):
         if not self.thread.is_alive():

@@ -22,7 +22,7 @@ _ = lang.gettext
 
 
 class FindDesktopWindowInteractive(QObject):
-    tracking_rate = 500
+    tracking_rate = 300
     painting_rate = 15
 
     result = Signal(QRect)
@@ -43,7 +43,7 @@ class FindDesktopWindowInteractive(QObject):
 
         self.paint_timer = QTimer()
         self.paint_timer.setInterval(self.painting_rate)
-        self.paint_timer.timeout.connect(self.paint)
+        self.paint_timer.timeout.connect(self._trigger_paint)
 
         self.cursor = QCursor()
         self.pywin_desktop = Desktop()
@@ -54,7 +54,7 @@ class FindDesktopWindowInteractive(QObject):
 
         # -- Transparent widget across the desktop to draw on --
         self.desk_draw_widget = DesktopDrawWidget(app.desktop())
-        self.desk_draw_widget.paintEvent = self.paint_event
+        self.desk_draw_widget.paintEvent = self._paint_event_override
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:
         """ Install on QApplication to grab result as soon as we loose focus
@@ -70,11 +70,11 @@ class FindDesktopWindowInteractive(QObject):
             return True
         return False
 
-    def paint(self):
+    def _trigger_paint(self):
         """ Trigger a desktop overlay widget paint event """
         self.desk_draw_widget.update()
 
-    def paint_event(self, event: QPaintEvent):
+    def _paint_event_override(self, event: QPaintEvent):
         pen = QPen(QColor(250, 120, 20))
         w = 4
         m = round(w/2)
@@ -116,14 +116,14 @@ class FindDesktopWindowInteractive(QObject):
         self.deleteLater()
 
     def _track_cursor(self):
-        wrapper = self._find_window_by_point(self.cursor.pos().x(), self.cursor.pos().y())
+        wrapper = self.find_window_by_point(self.cursor.pos().x(), self.cursor.pos().y())
         if not wrapper:
             return
 
         r = wrapper.rectangle()
         self.highlight_rect = QRect(r.left, r.top, r.width(), r.height())
 
-    def _find_window_by_point(self, x: int, y: int) -> Union[BaseWrapper, None]:
+    def find_window_by_point(self, x: int, y: int) -> Union[BaseWrapper, None]:
         try:
             return self.pywin_desktop.from_point(x, y)
         except Exception as e:

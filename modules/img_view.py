@@ -2,7 +2,7 @@ from pathlib import Path
 
 from PySide2.QtCore import QEvent, QPoint, QRect, QSize, QTimer, Qt
 from PySide2.QtGui import QKeySequence, QPalette, QColor
-from PySide2.QtWidgets import QHBoxLayout, QLabel, QPushButton, QShortcut, QSizePolicy, QWidget
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QShortcut, QSizePolicy, QWidget
 
 from modules.deltagen_viewer import SyncController
 from modules.utils.globals import MAX_SIZE_FACTOR
@@ -20,6 +20,48 @@ LOGGER = init_logging(__name__)
 lang = get_translation()
 lang.install()
 _ = lang.gettext
+
+WELCOME_MSG = _("""
+<h3>KnechtViewer</h3>
+<ul>
+<li>Q/E - Bildfläche vergrößern/verkleinern</li>
+<li>A/D - Nächste/Vorherige Bilddatei</li>
+<li>W/S - Transparenz der Bildfläche erhöhen/verringern</li>
+<li style="margin: 6px 0px;">
+<img src=":/main/eye.png" width="24" height="24" 
+style="float: left;vertical-align: middle;" />
+Tab - Bildfläche ein-/ausblenden</li>
+<li style="margin: 6px 0px;">
+<img src=":/main/collections.svg" width="24" height="24" 
+style="float: left;vertical-align: middle;" />
+Bildfläche immer im Vordergrund ein-/ausschalten
+</li>
+<li style="margin: 6px 0px;">
+<img src=":/main/cursor.svg" width="24" height="24" 
+style="float: left;vertical-align: middle;" />
+Bildfläche für Maus- und Tastatureingaben transparent machen
+</li>
+<li style="margin: 6px 0px;">
+<img src=":/main/compare.svg" width="24" height="24" 
+style="float: left;vertical-align: middle;" />
+F   - DeltaGen Viewer Position und Größe synchronisieren
+</li>
+<li style="margin: 6px 0px;">
+<img src=":/main/locate.svg" width="24" height="24" 
+style="float: left;vertical-align: middle;" />
+Bildfläche auf das gewählte Desktop Fenster verschieben, Shift+ButtonClick ignoriert Seitenverhältnis, Strg+ButtonClick 
+passt nur die Position an
+</li>
+<li style="margin: 6px 0px;">
+<img src=":/main/videocam.png" width="24" height="24" 
+style="float: left;vertical-align: middle;" />
+C - DeltaGen Kamera Daten aus Bildmetadaten an DeltaGen senden
+</li>
+</ul>
+Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.
+<br><br>
+Unterstütze Formate: {}
+""")
 
 
 class ViewerShortcuts:
@@ -55,10 +97,6 @@ class ViewerShortcuts:
         opa_lo = QShortcut(QKeySequence('Ctrl+-'), parent)
         opa_lo.activated.connect(self.viewer.decrease_window_opacity)
 
-        # Exit
-        esc = QShortcut(QKeySequence(Qt.Key_Escape), parent)
-        esc.activated.connect(self.viewer.close)
-
         # Load Next Image
         fwd = QShortcut(QKeySequence(Qt.Key_Right), parent)
         fwd.activated.connect(self.ui.fwd_btn.animateClick)
@@ -70,9 +108,17 @@ class ViewerShortcuts:
         bck_a = QShortcut(QKeySequence(Qt.Key_A), parent)
         bck_a.activated.connect(self.ui.back_btn.animateClick)
 
+        # Send DeltaGen camera data
+        cam = QShortcut(QKeySequence(Qt.Key_C), parent)
+        cam.activated.connect(self.ui.cam_btn.animateClick)
+
         # Toggle DeltaGen Viewer Sync
         dg = QShortcut(QKeySequence(Qt.Key_F), parent)
         dg.activated.connect(self.viewer.dg_toggle_sync)
+
+        # Exit
+        esc = QShortcut(QKeySequence(Qt.Key_Escape), parent)
+        esc.activated.connect(self.viewer.close)
 
 
 class ImageView(QWidget):
@@ -126,6 +172,9 @@ class ImageView(QWidget):
         self.img_load_controller = KnechtLoadImageController(self)
         self.img_load_controller.camera_available.connect(self.camera_data_available)
 
+        # --- DG Send thread controller ---
+        self.dg_thread = SyncController(self)
+
         # --- Image canvas ---
         self.setLayout(QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -148,9 +197,6 @@ class ImageView(QWidget):
         self.ui.zoom_box.currentIndexChanged.connect(self.combo_box_size)
         self.ui.zoom_box.setToolTip(_('Anzeigegröße der Bilddatei anpassen [Q/E]'))
 
-        self.ui.cam_btn.setToolTip(_('Kamera Daten an DeltaGen senden.'))
-        self.ui.cam_btn.released.connect(self.img_load_controller.send_camera_data)
-
         self.ui.back_btn.pressed.connect(self.iterate_bck)
         self.ui.back_btn.setToolTip(_('Datei zurück navigieren [A oder <= Pfeiltaste]'))
         self.ui.fwd_btn.pressed.connect(self.iterate_fwd)
@@ -172,9 +218,6 @@ class ImageView(QWidget):
         self.ui.focus_btn.pressed.connect(self.dg_toggle_pull)
         # Pulling focus is no longer necessary
         self.ui.focus_btn.hide()
-
-        # --- DG Send thread controller ---
-        self.dg_thread = SyncController(self)
 
         # --- Shortcuts ---
         self.shortcuts = ViewerShortcuts(self, self.ui)
@@ -205,42 +248,7 @@ class ImageView(QWidget):
                 LOGGER.debug('Image Overlay Window minimized.')
 
     def display_shortcuts(self, keep_overlay: bool=True):
-        msg = _('<h3>KnechtViewer Tastaturkürzel</h3>'
-                '<ul>'
-                '<li>Q/E - Bildfläche vergrößern/verkleinern</li>'
-                '<li>A/D - Nächste/Vorherige Bilddatei</li>'
-                '<li>W/S - Transparenz der Bildfläche erhöhen/verringern</li>'
-                '<li>Tab - Bildfläche ein-/ausblenden</li>'
-                '<li style="margin: 6px 0px;">'
-                '<img src=":/main/collections.svg" width="24" height="24" '
-                'style="float: left;vertical-align: middle;" />'
-                'Bildfläche immer im Vordergrund ein-/ausschalten'
-                '</li>'
-                '<li style="margin: 6px 0px;">'
-                '<img src=":/main/cursor.svg" width="24" height="24" '
-                'style="float: left;vertical-align: middle;" />'
-                'Bildfläche für Maus- und Tastatureingaben transparent machen'
-                '</li>'
-                '<li style="margin: 6px 0px;">'
-                '<img src=":/main/compare.svg" width="24" height="24" '
-                'style="float: left;vertical-align: middle;" />'
-                'F   - DeltaGen Viewer Position und Größe synchronisieren'
-                '</li>'
-                '<li style="margin: 6px 0px;">'
-                '<img src=":/main/locate.svg" width="24" height="24" '
-                'style="float: left;vertical-align: middle;" />'
-                'Bildfläche auf das gewählte Desktop Fenster verschieben'
-                '</li>'
-                '<li style="margin: 6px 0px;">'
-                '<img src=":/main/videocam.png" width="24" height="24" '
-                'style="float: left;vertical-align: middle;" />'
-                'Kamera Daten aus Bildmetadaten an DeltaGen senden'
-                '</li>'
-                '</ul>'
-                'Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.'
-                '<br><br>'
-                'Unterstütze Formate: {}'
-                ).format(' '.join(self.img_load_controller.FILE_TYPES))
+        msg = WELCOME_MSG.format(' '.join(self.img_load_controller.FILE_TYPES))
 
         # Ensure visibility of image canvas
         if self.current_opacity < 0.7 or self.ui.vis_btn.isChecked():
