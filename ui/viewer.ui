@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>580</width>
-    <height>64</height>
+    <width>582</width>
+    <height>65</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -179,10 +179,6 @@
      </item>
      <item>
       <widget class="QPushButton" name="sync_btn">
-       <property name="styleSheet">
-        <string notr="true">QPushButton {background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rga(230, 103, 192), stop:0.69 rgb(230, 103, 192), stop:0.7 rgb(227, 227, 227), stop:1 rgb(227, 227, 227));border: rgba(0, 0, 0, 255) 1px solid;padding: 4px 3px;}
-</string>
-       </property>
        <property name="text">
         <string>Sync DeltaGen Viewer</string>
        </property>

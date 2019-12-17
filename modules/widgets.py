@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from PySide2.QtCore import Qt, Signal, QObject
-from PySide2.QtGui import QDragMoveEvent
+from PySide2.QtGui import QDragMoveEvent, QFont
 from PySide2.QtWidgets import QComboBox, QWidget, QMenu, QAction
 
 from modules.utils.globals import EXTRA_SIZE_FACTORS, MAX_SIZE_FACTOR, MIN_SIZE_FACTOR, SIZE_INCREMENT
@@ -9,7 +9,7 @@ from modules.utils.language import get_translation
 from modules.utils.log import init_logging
 from modules.utils.path_util import path_exists
 from modules.utils.settings import KnechtSettings
-from modules.utils.ui_resource import IconRsc
+from modules.utils.ui_resource import IconRsc, FontRsc
 
 LOGGER = init_logging(__name__)
 
@@ -44,6 +44,9 @@ class ViewerSizeBox(QComboBox):
 
 
 class FileMenu(QMenu):
+    small_font = QFont(FontRsc.default_font_key)
+    small_font.setPixelSize(FontRsc.small_pixel_size)
+
     def __init__(self, ui):
         """
         :param modules.main_ui.ViewerWindow ui: main window
@@ -56,12 +59,13 @@ class FileMenu(QMenu):
         self.addAction(self.change_path)
 
         self.addSeparator()
+        self.recent_section = self.addSection(_('Kürzlich verwendete Verzeichnisse'))
 
         self.recent_actions = list()
 
         self.aboutToShow.connect(self.update_recent_files)
 
-    def open_recent_file(self):
+    def open_recent_dir(self):
         recent_action = self.sender()
         self.ui.file_changed(recent_action.file)
 
@@ -78,25 +82,41 @@ class FileMenu(QMenu):
             no_entries_dummy.setEnabled(False)
             self.recent_actions.append(no_entries_dummy)
 
+        recent_directories = set()
         for idx, entry in enumerate(KnechtSettings.app['recent_files']):
             if idx >= 20:
                 break
 
             file, file_type = entry
             file = Path(file)
-            file_name = f'...{str(file.parent)[-25:]}\\{file.name}'
 
-            if not path_exists(file):
-                # Skip and remove non existing files
-                KnechtSettings.app['recent_files'].pop(idx)
+            if file.is_file():
+                directory = file.parent
+            else:
+                directory = file
+
+            if not path_exists(directory):
+                # Skip non existing files/dirs
                 continue
 
-            recent_action = QAction(f'{file_name} - {file_type}', self)
-            recent_action.file = file
+            recent_directories.add(directory)
 
-            recent_action.setText(f'{file_name}')
+        if recent_directories:
+            KnechtSettings.app['recent_files'] = [(d.as_posix(), 'directory') for d in recent_directories]
+
+        for directory in recent_directories:
+            if len(str(directory)) > 95:
+                name = f'...{str(directory)[-95:]}'
+            else:
+                name = str(directory)
+
+            recent_action = QAction(name, self.recent_section)
+
+            recent_action.setFont(self.small_font)
+            recent_action.file = directory
+
             recent_action.setIcon(IconRsc.get_icon('img'))
-            recent_action.triggered.connect(self.open_recent_file)
+            recent_action.triggered.connect(self.open_recent_dir)
 
             self.recent_actions.append(recent_action)
 

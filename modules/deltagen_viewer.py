@@ -206,7 +206,7 @@ class DgSyncThread(Thread):
     def sync_img_viewer(self) -> bool:
         """ Resize DG Viewer widget and move img viewer to DG Viewer widget position """
         if self.initial_sync_started:
-            self.progress.emit(8)
+            self.progress.emit(10)
             if not self.ncat.deltagen_is_alive():
                 LOGGER.info('No socket connected to DeltaGen or no Viewer window active/in focus.')
                 return False

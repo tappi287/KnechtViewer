@@ -192,13 +192,21 @@ class KnechtLoadImageController(QObject):
         self.img_loader = None
 
     def _image_loaded(self, image: QPixmap):
-        KnechtSettings.add_recent_file(self.img_list[self.img_index], self.img_list[self.img_index].suffix)
+        self._add_recent_entry(self.img_list[self.img_index])
         self.load_timeout.stop()
         self.img_view.image_loaded(image)
 
     def _image_load_failed(self, error_msg: str):
         self.img_view.image_load_failed(error_msg)
         self.load_timeout.stop()
+
+    @staticmethod
+    def _add_recent_entry(file: Path):
+        directory = file.parent
+        recent_dirs = set([Path(d) for d, _ in KnechtSettings.app['recent_files']])
+
+        if directory not in recent_dirs:
+            KnechtSettings.add_recent_file(directory, 'directory')
 
     def kill_load_thread(self):
         LOGGER.error('Image load timeout exceeded. Trying to kill load thread.')
