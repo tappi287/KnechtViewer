@@ -304,7 +304,7 @@ class DgSyncThread(Thread):
             LOGGER.warning('Could not trasmit camera data to DeltaGen: %s', e)
 
     @Slot()
-    def dg_toggle_sync(self):
+    def dg_toggle_sync(self, reset_viewer: bool):
         self.sync_dg = not self.sync_dg
         self.set_btn_enabled_signal.emit(False)
         self.set_btn_checked_signal.emit(self.sync_dg)
@@ -318,7 +318,8 @@ class DgSyncThread(Thread):
             self.message.emit(_('Synchronisierung startet. Suche Anwendungsfenster...'))
         else:
             self.progress.emit(0)
-            self.dg_reset_viewer()
+            if reset_viewer:
+                self.dg_reset_viewer()
 
     def find_dg_window(self):
         """ Tries to find the MS Windows window handle and pulls the viewer window to foreground """
@@ -353,7 +354,7 @@ class DgSyncThread(Thread):
 
 
 class SyncController(QObject):
-    toggle_sync_signal = Signal()
+    toggle_sync_signal = Signal(bool)
     toggle_pull_signal = Signal(bool)
     transmit_camera_data_signal = Signal(ImageCameraInfo)
 
@@ -383,12 +384,12 @@ class SyncController(QObject):
     def update_progress(self, duration: int):
         self.progress_btn.start_timed_progress(duration)
 
-    def toggle_sync(self):
+    def toggle_sync(self, reset_viewer: bool = True):
         if not self.viewer.ui.top_btn.isChecked():
             self.viewer.ui.top_btn.setChecked(self.viewer.switch_stay_on_top())
 
         self.start()
-        self.toggle_sync_signal.emit()
+        self.toggle_sync_signal.emit(reset_viewer)
 
     def toggle_pull(self):
         enabled = self.viewer.ui.focus_btn.isChecked()

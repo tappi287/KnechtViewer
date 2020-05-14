@@ -169,7 +169,7 @@ class ViewerWindow(QWidget):
         cam = self.img_view.img_load_controller.current_cam
 
         if cam:
-            self.img_view.dg_thread.send_camera_data(cam)
+            self.img_view.dg_thread_controller.send_camera_data(cam)
 
     def _path_dialog_opened(self):
         """ Toggle Image Canvas Stay On Top while Path Dialog opened """

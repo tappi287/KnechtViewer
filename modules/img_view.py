@@ -173,7 +173,7 @@ class ImageView(QWidget):
         self.img_load_controller.camera_available.connect(self.camera_data_available)
 
         # --- DG Send thread controller ---
-        self.dg_thread = SyncController(self)
+        self.dg_thread_controller = SyncController(self)
 
         # --- Image canvas ---
         self.setLayout(QHBoxLayout())
@@ -212,8 +212,14 @@ class ImageView(QWidget):
         self.ui.sync_btn.setText(_('Sync DeltaGen Viewer'))
         self.ui.sync_btn.setToolTip(_('Bildfläche periodisch zum DeltaGen Viewer verschieben [F]'))
         self.ui.sync_btn.toggled.connect(self.dg_toggle_sync)
+        # Toggle sync off when idle
+        self.ui.app.idle_event.connect(self._dg_toggle_sync_idle)
+
+        # --- Help button ---
         self.ui.help_btn.setToolTip(_('Hilfe anzeigen'))
         self.ui.help_btn.pressed.connect(self.display_shortcuts)
+
+        # --- Pull button (depreciated) ---
         self.ui.focus_btn.setText(_('Pull DeltaGen Focus'))
         self.ui.focus_btn.pressed.connect(self.dg_toggle_pull)
         # Pulling focus is no longer necessary
@@ -281,13 +287,20 @@ class ImageView(QWidget):
 
     def dg_toggle_pull(self):
         """ Toggles pulling of the viewer window in front on/off """
-        self.dg_thread.toggle_pull()
+        self.dg_thread_controller.toggle_pull()
+
+    def _dg_toggle_sync_idle(self):
+        """ Switch off sync if app is idling """
+        if self.ui.sync_btn.isChecked():
+            LOGGER.debug('Toggling sync off while application is idling.')
+            # Toggle sync off and do not interrupt user with viewer reset
+            self.dg_thread_controller.toggle_sync(reset_viewer=False)
 
     def dg_toggle_sync(self):
         if not self.ui.sync_btn.isEnabled():
             return
 
-        self.dg_thread.toggle_sync()
+        self.dg_thread_controller.toggle_sync()
 
     # ------ IMAGES -------
     def set_img_path(self, file_path: Path):
@@ -580,7 +593,7 @@ class ImageView(QWidget):
         return QRect(min_x, min_y, max_x, max_y)
 
     def closeEvent(self, QCloseEvent):
-        self.dg_thread.exit()
+        self.dg_thread_controller.exit()
         self.ui.close()
         QCloseEvent.accept()
 
