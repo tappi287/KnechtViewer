@@ -189,7 +189,7 @@ class DgSyncThread(Thread):
                 if not self.sync_img_viewer():
                     # Not synced, toggle off
                     LOGGER.debug('Sync unsuccessful, stopping sync.')
-                    self.dg_toggle_sync()
+                    self.dg_toggle_sync(False)
                     self.message.emit(_('Synchronisation beendet. Keine Verbindung zum DeltaGen Host oder kein Viewer'
                                       'Fenster gefunden.'))
                 else:
