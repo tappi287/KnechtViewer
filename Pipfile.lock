@@ -1,11 +1,11 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3c8d0960e6d761aab6dc0167891c841adafe98894899f8c14242780bc4d43cc4"
+            "sha256": "68647b6f8177815a41d30bb12892218f1a4ed7675c9345b692bf7716060e19bd"
         },
         "pipfile-spec": 6,
         "requires": {
-            "python_version": "3.7"
+            "python_version": "3.8"
         },
         "sources": [
             {
@@ -106,6 +106,7 @@
             "hashes": [
                 "sha256:b2dd77fb2970520cdb236f5e060430b471ee2e966f156743479964677264a4ab"
             ],
+            "index": "piwigo",
             "version": "==2.1.16"
         },
         "pyside2": {
