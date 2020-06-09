@@ -3,6 +3,11 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
+[[source]]
+name = "piwigo"
+url = "https://piwigo.ilikeviecher.com/ftp-upload/packages/"
+verify_ssl = true
+
 [dev-packages]
 pyinstaller = {git = "https://github.com/pyinstaller/pyinstaller.git"}
 
@@ -12,7 +17,7 @@ numpy = "==1.18.4"
 ujson = "*"
 jsonpickle = "*"
 lxml = "*"
-openimageio = {file = "https://piwigo.ilikeviecher.com/ftp-upload/packages/OpenImageIO-2.0.7-cp37-cp37m-win_amd64.whl"}
+openimageio = {version="*", index="piwigo"}
 pywin32 = "*"
 pywinauto = "*"
 
