@@ -203,7 +203,7 @@ class KnechtLoadImageController(QObject):
     @staticmethod
     def _add_recent_entry(file: Path):
         directory = file.parent
-        recent_dirs = set([Path(d) for d, _ in KnechtSettings.app['recent_files']])
+        recent_dirs = set([Path(d) for d, _ in KnechtSettings.app.get('recent_files', list())])
 
         if directory not in recent_dirs:
             KnechtSettings.add_recent_file(directory, 'directory')

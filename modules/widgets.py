@@ -77,13 +77,13 @@ class FileMenu(QMenu):
     def update_recent_files(self):
         self._clear_recent_actions()
 
-        if not len(KnechtSettings.app['recent_files']):
+        if not len(KnechtSettings.app.get('recent_files', list())):
             no_entries_dummy = QAction(_("Keine Einträge vorhanden"), self)
             no_entries_dummy.setEnabled(False)
             self.recent_actions.append(no_entries_dummy)
 
         recent_directories = set()
-        for idx, entry in enumerate(KnechtSettings.app['recent_files']):
+        for idx, entry in enumerate(KnechtSettings.app.get('recent_files')):
             if idx >= 20:
                 break
 
