@@ -5,45 +5,26 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"
-"POT-Creation-Date: 2019-12-16 13:28+0100\n"
-"PO-Revision-Date: 2019-12-16 13:32+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"Language: en\n"
+"POT-Creation-Date: 2021-09-01 11:24+0200\n"
+"PO-Revision-Date: 2021-09-01 11:25+0200\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=cp1252\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: pygettext.py 1.5\n"
-"X-Generator: Poedit 2.2.4\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: en\n"
+"X-Generator: Poedit 2.4.2\n"
 
-#: modules\deltagen_viewer.py:189
-msgid ""
-"Synchronisation beendet. Keine Verbindung zum DeltaGen Host oder kein "
-"ViewerFenster gefunden."
-msgstr ""
-"Synchronization stopped. No connection to the DeltaGen host or no "
-"ViewerWindow found."
+#: modules\deltagen_viewer.py:194
+msgid "Synchronisation beendet. Keine Verbindung zum DeltaGen Host oder kein ViewerFenster gefunden."
+msgstr "Synchronization stopped. No connection to the DeltaGen host or no ViewerWindow found."
 
-#: modules\deltagen_viewer.py:307
+#: modules\deltagen_viewer.py:319
 msgid "Synchronisierung startet. Suche Anwendungsfenster..."
 msgstr "Synchronization starts. Search Application Window..."
 
 #: modules\img_view.py:24
-#, fuzzy
-#| msgid ""
-#| "<h3>KnechtViewer Tastaturkürzel</h3><ul><li>Q/E - Bildfläche vergrößern/"
-#| "verkleinern</li><li>A/D - Nächste/Vorherige Bilddatei</li><li>W/S - "
-#| "Transparenz der Bildfläche erhöhen/verringern</li><li>Tab - Bildfläche "
-#| "ein-/ausblenden</li><li style=\"margin: 4px 0px;\"><img src=\":/main/"
-#| "collections.svg\" width=\"24\" height=\"24\" style=\"float: left;vertical-"
-#| "align: middle;\"/>Bildfläche immer im Vordergrund ein-/ausschalten</"
-#| "li><li>F   - DeltaGen Viewer Position und Größe synchronisieren</li><li "
-#| "style=\"margin: 4px 0px;\"><img src=\":/main/open.svg\" width=\"24\" "
-#| "height=\"24\" style=\"float: left;vertical-align: middle;\" />DeltaGen "
-#| "Viewer Fenster periodisch in den Vordergrund holen. <b>ACHTUNG</b>: "
-#| "Tastatureingaben werden an das fokusierte DeltaGen Fenster gesendet "
-#| "werden!</li></ul>Dateien oder Ordner auf die Bildfäche oder in das "
-#| "Bedienfenster ziehen um Bilddaten zu laden.<br><br>Unterstütze Formate: {}"
 msgid ""
 "\n"
 "<h3>KnechtViewer</h3>\n"
@@ -73,8 +54,7 @@ msgid ""
 "<li style=\"margin: 6px 0px;\">\n"
 "<img src=\":/main/locate.svg\" width=\"24\" height=\"24\" \n"
 "style=\"float: left;vertical-align: middle;\" />\n"
-"Bildfläche auf das gewählte Desktop Fenster verschieben, Shift+ButtonClick "
-"ignoriert Seitenverhältnis, Strg+ButtonClick \n"
+"Bildfläche auf das gewählte Desktop Fenster verschieben, Shift+ButtonClick ignoriert Seitenverhältnis, Strg+ButtonClick \n"
 "passt nur die Position an\n"
 "</li>\n"
 "<li style=\"margin: 6px 0px;\">\n"
@@ -83,109 +63,145 @@ msgid ""
 "C - DeltaGen Kamera Daten aus Bildmetadaten an DeltaGen senden\n"
 "</li>\n"
 "</ul>\n"
-"Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um "
-"Bilddaten zu laden.\n"
+"Dateien oder Ordner auf die Bildfäche oder in das Bedienfenster ziehen um Bilddaten zu laden.\n"
 "<br><br>\n"
 "Unterstütze Formate: {}\n"
 msgstr ""
-"<h3>KnechtViewer Shortcuts</h3><ul><li>Q/E - Change Image canvas size</"
-"li><li>A/D - Next/previous Image file</li><li>W/S - increase/decrease Image "
-"canvas opacity</li><li>Tab - Hide/Unhide Image canvas</li><li style="
-"\"margin: 4px 0px;\"><img src=\":/main/collections.svg\" width=\"24\" height="
-"\"24\" style=\"float: left;vertical-align: middle;\"/>Image canvas always on "
-"top on/off</li><li>F   - Sync DeltaGen Viewer position and size</li><li "
-"style=\"margin: 4px 0px;\"><img src=\":/main/open.svg\" width=\"24\" height="
-"\"24\" style=\"float: left;vertical-align: middle;\" />Pull DeltaGen Viewer "
-"to top periodically<b>ATTENTION</b>: Keyboard Input will be send to DeltaGen "
-"if Viewer is pulled to focus</li></ul>Drop files or directories to the Image "
-"canvas or the Control window to load them.<br><br>Supported formats: {}"
+"\n"
+"<h3>KnechtViewer</h3>\n"
+"<ul>\n"
+"<li>Q/E - Zoom in/out</li>\n"
+"<li>A/D - Next/Previous Image File</li>\n"
+"<li>W/S - Increase/Decrease Transparency of the Screen Area</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/eye.png\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />Tab - Show/Hide Screen</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/collections.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />Always turn the screen on/off in the foreground</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/cursor.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />Make the screen transparent for mouse and keyboard input</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/compare.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />F - DeltaGen Viewer Synchronize Position and Size</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/locate.svg\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />Move the screen to the selected desktop window, Shift+ButtonClick ignores aspect ratio, Ctrl+ButtonClick \n"
+"adjusts only the position</li>\n"
+"<li style=\"margin: 6px 0px;\">\n"
+"<img src=\":/main/videocam.png\" width=\"24\" height=\"24\" \n"
+"style=\"float: left;vertical-align: middle;\" />C - DeltaGen Camera Send Data from Image Metadata to DeltaGen</li>\n"
+"</ul>Drag files or folders to the image window or to the control window to load image data.<br><br>Supported formats: {}\n"
 
-#: modules\img_view.py:189
+#: modules\img_view.py:193
 msgid "Transparenz der Bildfläche festlegen [W/S]"
 msgstr "Set the transparency of the image area [W/S]"
 
-#: modules\img_view.py:194
+#: modules\img_view.py:198
 msgid "Anzeigegröße der Bilddatei anpassen [Q/E]"
 msgstr "Adjust the display size of the image file [Q/E]"
 
-#: modules\img_view.py:196
-msgid "Kamera Daten an DeltaGen senden."
-msgstr "Send camera data to DeltaGen."
-
-#: modules\img_view.py:200
+#: modules\img_view.py:201
 msgid "Datei zurück navigieren [A oder <= Pfeiltaste]"
 msgstr "Navigate file back [A or <= arrow key]"
 
-#: modules\img_view.py:202
+#: modules\img_view.py:203
 msgid "Datei vorwärts navigieren [D oder => Pfeiltaste]"
 msgstr "Navigate file forward [D or => arrow key]"
 
-#: modules\img_view.py:203
+#: modules\img_view.py:204
 msgid "Bildfläche immer im Vordergrund"
 msgstr "Keep Image canvas always on top"
 
-#: modules\img_view.py:205
+#: modules\img_view.py:206
 msgid "Sichtbarkeit der Bildfläche an/aus [Tab]"
 msgstr "Visibility of the image area on/off [Tab]"
 
-#: modules\img_view.py:207
+#: modules\img_view.py:208
 msgid "Maus und Tastatureingabe für Bildfläche de-/aktivieren"
 msgstr "De-/activate mouse and keyboard input for image area"
 
-#: modules\img_view.py:211
+#: modules\img_view.py:212
 msgid "Sync DeltaGen Viewer"
 msgstr "Sync DeltaGen Viewer"
 
-#: modules\img_view.py:212
+#: modules\img_view.py:213
 msgid "Bildfläche periodisch zum DeltaGen Viewer verschieben [F]"
 msgstr "Periodically move the image area to the DeltaGen Viewer [F]"
 
-#: modules\img_view.py:214
+#: modules\img_view.py:223
 msgid "Hilfe anzeigen"
 msgstr "View Help"
 
-#: modules\img_view.py:216
+#: modules\img_view.py:227
 msgid "Pull DeltaGen Focus"
 msgstr "Pull DeltaGen Focus"
 
-#: modules\img_view.py:322
+#: modules\img_view.py:262
+msgid "Port zwischen 3000-3999 angeben. Muss mit DeltaGen>Preferences>Tools>External Commands übereinstimmen."
+msgstr "Specify port between 3000-3999. Must match DeltaGen>Preferences>Tools>External Commands."
+
+#: modules\img_view.py:264
+msgid "DeltaGen Kommando Port"
+msgstr "DeltaGen Command Port"
+
+#: modules\img_view.py:278
+msgid "Anwendung neu starten um geänderten Port zu übernehmen."
+msgstr "Restart the application to apply the changed port."
+
+#: modules\img_view.py:279
+msgid "Neustart erforderlich"
+msgstr "Restart required"
+
+#: modules\img_view.py:359
 msgid "Keine Bilddaten im Verzeichnis gefunden."
 msgstr "No Image data was found in the directory."
 
-#: modules\img_view.py:337
+#: modules\img_view.py:374
 msgid "Konnte keine Bilddaten laden: {}<br>{}"
 msgstr "Could not load Image data: {}<br>{}"
 
-#: modules\img_view.py:492
+#: modules\img_view.py:529
 msgid "Bildfläche erscheint nun nicht mehr im Vordergrund"
 msgstr "Image canvas is no longer always on top"
 
-#: modules\img_view.py:493
+#: modules\img_view.py:530
 msgid "Bildfläche erscheint nun immer im Vordergrund"
 msgstr "Image canvas is always on top now"
 
-#: modules\img_view.py:508
+#: modules\img_view.py:545
 msgid "Maus und Tastatureingabe für Bildfläche aktiviert."
 msgstr "Mouse and keyboard input enabled for image area."
 
-#: modules\img_view.py:509
+#: modules\img_view.py:546
 msgid "Maus und Tastatureingabe für Bildfläche deaktiviert."
 msgstr "Mouse and keyboard input for image area disabled."
 
-#: modules\main_ui.py:66
+#: modules\main_ui.py:70
 msgid "Dateien oder Ordner in das Fenster ziehen oder hier Pfad einfügen."
 msgstr "Drop files or directories to the window or paste a path here."
 
-#: modules\main_ui.py:78
-msgid ""
-"Desktop Fenster auswählen und Bildfläche dorthin verschieben; Strg/Shift"
-"+Klick ignoriert Seitenverhältnis"
-msgstr ""
-"Select desktop window and move the screen there; Ctrl/Shift+Click ignores "
-"Aspect Ratio"
+#: modules\main_ui.py:83
+msgid "Desktop Fenster auswählen und Bildfläche dorthin verschieben; Strg/Shift+Klick ignoriert Seitenverhältnis"
+msgstr "Select desktop window and move the screen there; Ctrl/Shift+Click ignores Aspect Ratio"
 
-#: modules\main_ui.py:130
-msgid ""
-"Desktop Fenster mit Mausklick auswählen. Beliebige Taste drücken zum "
-"abbrechen."
+#: modules\main_ui.py:86
+msgid "Kamera Daten an DeltaGen senden."
+msgstr "Send camera data to DeltaGen."
+
+#: modules\main_ui.py:138
+msgid "Desktop Fenster mit Mausklick auswählen. Beliebige Taste drücken zum abbrechen."
 msgstr "Select desktop window with a mouse click. Press any key to cancel."
+
+#: modules\widgets.py:57
+msgid "Verzeichnis auswählen"
+msgstr "Choose directory"
+
+#: modules\widgets.py:62
+msgid "Kürzlich verwendete Verzeichnisse"
+msgstr "Recently used directories"
+
+#: modules\widgets.py:81
+msgid "Keine Einträge vorhanden"
+msgstr "No entries"

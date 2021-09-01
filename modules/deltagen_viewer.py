@@ -4,6 +4,7 @@ from threading import Event, Thread
 
 # https://github.com/pywinauto/pywinauto/issues/472
 from modules.utils.camera_info import ImageCameraInfo
+from modules.utils.settings import KnechtSettings
 
 sys.coinit_flags = 2  # Fix all kinds of Qt Conflicts after importing pywinauto
 
@@ -167,7 +168,7 @@ class DgSyncThread(Thread):
         self.initial_viewer_size = str()
         self.last_known_win32_wrapper = None
 
-        self.ncat = Ncat(DG_TCP_IP, DG_TCP_PORT)
+        self.ncat = Ncat(DG_TCP_IP, KnechtSettings.app.get('port', DG_TCP_PORT))
 
         self.signals = DgSyncThreadSignals()
         self.set_btn_enabled_signal = self.signals.set_btn_enabled_signal

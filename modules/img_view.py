@@ -2,10 +2,10 @@ from pathlib import Path
 
 from PySide2.QtCore import QEvent, QPoint, QRect, QSize, QTimer, Qt
 from PySide2.QtGui import QKeySequence, QPalette, QColor
-from PySide2.QtWidgets import QHBoxLayout, QLabel, QShortcut, QSizePolicy, QWidget
+from PySide2.QtWidgets import QHBoxLayout, QLabel, QShortcut, QSizePolicy, QWidget, QMessageBox, QSpinBox
 
 from modules.deltagen_viewer import SyncController
-from modules.utils.globals import MAX_SIZE_FACTOR
+from modules.utils.globals import MAX_SIZE_FACTOR, DG_TCP_PORT
 from modules.utils.gui_utils import DragNDropHandler
 from modules.utils.img_loader import KnechtLoadImageController
 from modules.utils.language import get_translation
@@ -215,6 +215,10 @@ class ImageView(QWidget):
         # Toggle sync off when idle
         self.ui.app.idle_event.connect(self._dg_toggle_sync_idle)
 
+        # -- Change DeltaGen Port button
+        self.ui.dg_btn.setToolTip('DeltaGen external command port')
+        self.ui.dg_btn.pressed.connect(self.change_deltagen_port)
+
         # --- Help button ---
         self.ui.help_btn.setToolTip(_('Hilfe anzeigen'))
         self.ui.help_btn.pressed.connect(self.display_shortcuts)
@@ -252,6 +256,28 @@ class ImageView(QWidget):
                 LOGGER.debug('Image Overlay Window was restored')
             elif event.oldState() == Qt.WindowNoState:
                 LOGGER.debug('Image Overlay Window minimized.')
+
+    def change_deltagen_port(self):
+        box = QMessageBox(self)
+        box.setText(_('Port zwischen 3000-3999 angeben. '
+                      'Muss mit DeltaGen>Preferences>Tools>External Commands übereinstimmen.'))
+        box.setWindowTitle(_('DeltaGen Kommando Port'))
+
+        port = QSpinBox(box)
+        port.setMinimum(3000)
+        port.setMaximum(3999)
+        port.setValue(KnechtSettings.app.get('port', DG_TCP_PORT))
+        box.layout().addWidget(port,  box.layout().rowCount() - 1, 0, 1, box.layout().columnCount())
+        box.layout().addWidget(box.layout().takeAt(box.layout().rowCount() - 1).widget(), box.layout().rowCount(),
+                               0, 1, box.layout().columnCount())
+        box.exec_()
+
+        if 3000 <= port.value() <= 3999:
+            KnechtSettings.app['port'] = port.value()
+            box = QMessageBox(self)
+            box.setText(_('Anwendung neu starten um geänderten Port zu übernehmen.'))
+            box.setWindowTitle(_('Neustart erforderlich'))
+            box.exec_()
 
     def display_shortcuts(self, keep_overlay: bool=True):
         msg = WELCOME_MSG.format(' '.join(self.img_load_controller.FILE_TYPES))

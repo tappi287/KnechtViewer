@@ -7,7 +7,7 @@ from typing import Union, Any
 
 import jsonpickle
 
-from modules.utils.globals import Resource, UI_PATH, UI_PATHS_FILE, SETTINGS_FILE
+from modules.utils.globals import Resource, UI_PATH, UI_PATHS_FILE, SETTINGS_FILE, DG_TCP_PORT
 from modules.utils.globals import get_current_modules_dir, get_settings_dir
 from modules.utils.language import setup_translation
 
@@ -131,7 +131,8 @@ class KnechtSettings:
         current_path='',
         introduction_shown=False,
         app_style='fusion',
-        font_size=20
+        font_size=20,
+        port=DG_TCP_PORT,
         )
 
     language = 'de'

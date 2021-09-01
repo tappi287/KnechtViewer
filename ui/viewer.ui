@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>582</width>
+    <width>620</width>
     <height>65</height>
    </rect>
   </property>
@@ -205,7 +205,7 @@
      <item>
       <widget class="QPushButton" name="focus_btn">
        <property name="text">
-        <string>Pull DeltaGen Focus</string>
+        <string>Pull DG Focus</string>
        </property>
        <property name="icon">
         <iconset resource="res/viewer_resource.qrc">
@@ -265,6 +265,13 @@
        <property name="icon">
         <iconset resource="res/viewer_resource.qrc">
          <normaloff>:/main/forward.svg</normaloff>:/main/forward.svg</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="dg_btn">
+       <property name="text">
+        <string>Port</string>
        </property>
       </widget>
      </item>
