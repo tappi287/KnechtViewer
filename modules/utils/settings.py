@@ -1,4 +1,4 @@
-import ujson
+import json
 import os
 import time
 import zlib
@@ -18,7 +18,7 @@ def delayed_log_setup():
     LOGGER = init_logging(__name__)
 
 
-jsonpickle.set_preferred_backend('ujson')
+# jsonpickle.set_preferred_backend('ujson')
 
 
 class Settings:
@@ -29,7 +29,7 @@ class Settings:
     def load(obj: object, file):
         try:
             with open(file, 'r') as f:
-                load_dict = ujson.load(f)
+                load_dict = json.load(f)
         except Exception as e:
             print('Could not load setting data:\n', e)
             return
@@ -39,7 +39,7 @@ class Settings:
 
     @staticmethod
     def load_from_bytes(obj, data: bytes):
-        load_dict = ujson.loads(data)
+        load_dict = json.loads(data)
 
         for key, attr in load_dict.items():
             setattr(obj, key, attr)
@@ -62,7 +62,7 @@ class Settings:
 
         try:
             with open(file, 'w') as f:
-                ujson.dump(save_dict, f)
+                json.dump(save_dict, f)
 
             msg = 'Saved settings to file: {}'.format(file.absolute().as_posix())
             LOGGER.info(msg)
