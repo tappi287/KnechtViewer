@@ -3,24 +3,18 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-[[source]]
-name = "piwigo"
-url = "https://piwigo.ilikeviecher.com/ftp-upload/packages/"
-verify_ssl = true
-
 [dev-packages]
 pyinstaller = {git = "https://github.com/pyinstaller/pyinstaller.git"}
 
 [packages]
-pyside2 = "==5.15.0"
-openimageio = {version="==2.1.16", index="piwigo"}
-numpy = "==1.18.4"
-ujson = "*"
+pyside2 = "==5.15.2"
+openimageio = {path = "./whl/OpenImageIO-2.2.18.0-cp39-cp39-win_amd64.whl"}
+numpy = "==1.18.5"
 jsonpickle = "*"
 lxml = "*"
 pywin32 = "*"
 pywinauto = "*"
-pywin32-ctypes = "==0.1.2"
+pywin32-ctypes = "==0.2.0"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
